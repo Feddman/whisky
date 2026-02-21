@@ -4,42 +4,66 @@ namespace Database\Seeders;
 
 use App\Models\TasteTag;
 use Illuminate\Database\Seeder;
+use Illuminate\Support\Facades\DB;
 
 class TasteTagSeeder extends Seeder
 {
     public function run(): void
     {
         $tags = [
-            ['slug' => 'woody', 'name' => 'Woody', 'category' => 'Wood & Oak', 'order' => 1],
-            ['slug' => 'vanilla', 'name' => 'Vanilla', 'category' => 'Sweet', 'order' => 2],
-            ['slug' => 'caramel', 'name' => 'Caramel', 'category' => 'Sweet', 'order' => 3],
-            ['slug' => 'honey', 'name' => 'Honey', 'category' => 'Sweet', 'order' => 4],
-            ['slug' => 'chocolate', 'name' => 'Chocolate', 'category' => 'Sweet', 'order' => 5],
-            ['slug' => 'toffee', 'name' => 'Toffee', 'category' => 'Sweet', 'order' => 6],
-            ['slug' => 'floral', 'name' => 'Floral', 'category' => 'Floral', 'order' => 10],
-            ['slug' => 'heather', 'name' => 'Heather', 'category' => 'Floral', 'order' => 11],
-            ['slug' => 'rose', 'name' => 'Rose', 'category' => 'Floral', 'order' => 12],
-            ['slug' => 'fruity', 'name' => 'Fruity', 'category' => 'Fruit', 'order' => 20],
-            ['slug' => 'citrus', 'name' => 'Citrus', 'category' => 'Fruit', 'order' => 21],
-            ['slug' => 'apple', 'name' => 'Apple', 'category' => 'Fruit', 'order' => 22],
-            ['slug' => 'pear', 'name' => 'Pear', 'category' => 'Fruit', 'order' => 23],
-            ['slug' => 'dried-fruit', 'name' => 'Dried fruit', 'category' => 'Fruit', 'order' => 24],
-            ['slug' => 'smoky', 'name' => 'Smoky', 'category' => 'Peat & Smoke', 'order' => 30],
-            ['slug' => 'peat', 'name' => 'Peaty', 'category' => 'Peat & Smoke', 'order' => 31],
-            ['slug' => 'medicinal', 'name' => 'Medicinal', 'category' => 'Peat & Smoke', 'order' => 32],
-            ['slug' => 'spicy', 'name' => 'Spicy', 'category' => 'Spice', 'order' => 40],
-            ['slug' => 'pepper', 'name' => 'Pepper', 'category' => 'Spice', 'order' => 41],
-            ['slug' => 'cinnamon', 'name' => 'Cinnamon', 'category' => 'Spice', 'order' => 42],
-            ['slug' => 'nutty', 'name' => 'Nutty', 'category' => 'Nuts & Cereal', 'order' => 50],
-            ['slug' => 'cereal', 'name' => 'Cereal', 'category' => 'Nuts & Cereal', 'order' => 51],
-            ['slug' => 'malty', 'name' => 'Malty', 'category' => 'Nuts & Cereal', 'order' => 52],
+            // wood
+            ['slug' => 'oak', 'name' => 'Oak', 'category' => 'wood', 'order' => 10],
+            ['slug' => 'cedar', 'name' => 'Cedar', 'category' => 'wood', 'order' => 11],
+            ['slug' => 'char', 'name' => 'Char', 'category' => 'wood', 'order' => 12],
+            ['slug' => 'pine', 'name' => 'Pine', 'category' => 'wood', 'order' => 13],
+
+            // sweet
+            ['slug' => 'honey', 'name' => 'Honey', 'category' => 'sweet', 'order' => 20],
+            ['slug' => 'caramel', 'name' => 'Caramel', 'category' => 'sweet', 'order' => 21],
+            ['slug' => 'toffee', 'name' => 'Toffee', 'category' => 'sweet', 'order' => 22],
+            ['slug' => 'vanilla', 'name' => 'Vanilla', 'category' => 'sweet', 'order' => 23],
+
+            // floral
+            ['slug' => 'rose', 'name' => 'Rose', 'category' => 'floral', 'order' => 30],
+            ['slug' => 'lavender', 'name' => 'Lavender', 'category' => 'floral', 'order' => 31],
+            ['slug' => 'heather', 'name' => 'Heather', 'category' => 'floral', 'order' => 32],
+            ['slug' => 'violet', 'name' => 'Violet', 'category' => 'floral', 'order' => 33],
+
+            // fruity
+            ['slug' => 'apple', 'name' => 'Apple', 'category' => 'fruity', 'order' => 40],
+            ['slug' => 'pear', 'name' => 'Pear', 'category' => 'fruity', 'order' => 41],
+            ['slug' => 'peach', 'name' => 'Peach', 'category' => 'fruity', 'order' => 42],
+            ['slug' => 'citrus', 'name' => 'Citrus', 'category' => 'fruity', 'order' => 43],
+
+            // peat
+            ['slug' => 'smoke', 'name' => 'Smoke', 'category' => 'peat', 'order' => 50],
+            ['slug' => 'medicinal', 'name' => 'Medicinal', 'category' => 'peat', 'order' => 51],
+            ['slug' => 'seaweed', 'name' => 'Seaweed', 'category' => 'peat', 'order' => 52],
+            ['slug' => 'ash', 'name' => 'Ash', 'category' => 'peat', 'order' => 53],
+
+            // spice
+            ['slug' => 'black-pepper', 'name' => 'Black pepper', 'category' => 'spice', 'order' => 60],
+            ['slug' => 'clove', 'name' => 'Clove', 'category' => 'spice', 'order' => 61],
+            ['slug' => 'nutmeg', 'name' => 'Nutmeg', 'category' => 'spice', 'order' => 62],
+            ['slug' => 'ginger', 'name' => 'Ginger', 'category' => 'spice', 'order' => 63],
+
+            // nuts
+            ['slug' => 'almond', 'name' => 'Almond', 'category' => 'nuts', 'order' => 70],
+            ['slug' => 'walnut', 'name' => 'Walnut', 'category' => 'nuts', 'order' => 71],
+            ['slug' => 'hazelnut', 'name' => 'Hazelnut', 'category' => 'nuts', 'order' => 72],
+            ['slug' => 'bitter-almond', 'name' => 'Bitter almond', 'category' => 'nuts', 'order' => 73],
         ];
 
         foreach ($tags as $tag) {
-            TasteTag::updateOrCreate(
-                ['slug' => $tag['slug']],
-                $tag
-            );
+            $category = DB::table('taste_tag_categories')->where('slug', $tag['category'])->first();
+            if (! $category) continue; // skip if category missing
+
+            $data = [
+                'name' => $tag['name'],
+                'order' => $tag['order'],
+                'category_id' => $category->id,
+            ];
+            TasteTag::updateOrCreate(['slug' => $tag['slug']], array_merge(['slug' => $tag['slug']], $data));
         }
     }
 }

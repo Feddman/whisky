@@ -14,6 +14,7 @@ use App\Models\SessionParticipant;
 use App\Models\TastingSession;
 use App\Models\TastingSubmission;
 use App\Models\TasteTag;
+use App\Models\TasteTagCategory;
 use App\Services\TastingScoringService;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\Support\Facades\Cache;
@@ -44,6 +45,9 @@ class SessionRoom extends Component
 
     /** Tasting form (when round in progress) */
     public int $formStep = 1;
+
+    /** Selected taste category slug for step 2 (null = show category picker) */
+    public ?string $selectedTasteCategory = null;
 
     public string $tasting_color = '';
 
@@ -196,6 +200,27 @@ class SessionRoom extends Component
         $this->reset(['formStep', 'tasting_color', 'tasting_tags']);
     }
 
+    // Toggle a taste tag for the current participant, enforcing the max tags limit
+    public function toggleTasteTag(string $slug): void
+    {
+        $max = $this->tastingSession->max_taste_tags;
+        $selected = $this->tasting_tags ?? [];
+
+        if (in_array($slug, $selected, true)) {
+            // remove
+            $this->tasting_tags = array_values(array_filter($selected, fn($s) => $s !== $slug));
+            return;
+        }
+
+        if (count($selected) >= $max) {
+            // flash a small error message (session) so UI can show it if desired
+            session()->flash('taste_tag_limit', __('session.pick_up_to', ['max' => $max]));
+            return;
+        }
+
+        $this->tasting_tags = array_values(array_merge($selected, [$slug]));
+    }
+
     #[Computed]
     public function getCurrentParticipantProperty(): ?SessionParticipant
     {
@@ -226,7 +251,38 @@ class SessionRoom extends Component
     #[Computed]
     public function tasteTagsGrouped(): \Illuminate\Support\Collection
     {
-        return TasteTag::orderBy('order')->get()->groupBy('category');
+        return TasteTag::with('category')->orderBy('order')->get()->groupBy(function($tag) {
+            if ($tag->category) return $tag->category->slug;
+            return 'uncategorized';
+        });
+    }
+
+    /** Categories from DB (name + emoji); includes uncategorized if present in grouped tags. */
+    #[Computed]
+    public function tasteCategoryList(): \Illuminate\Support\Collection
+    {
+        $grouped = $this->tasteTagsGrouped;
+        $fromDb = TasteTagCategory::orderBy('order')->get();
+        $list = $fromDb->map(fn ($c) => (object) ['slug' => $c->slug, 'name' => $c->name, 'emoji' => $c->emoji]);
+        if ($grouped->has('uncategorized')) {
+            $list->push((object) ['slug' => 'uncategorized', 'name' => __('session.uncategorized'), 'emoji' => null]);
+        }
+        return $list;
+    }
+
+    #[Computed]
+    public function selectedTasteTagModels(): \Illuminate\Support\Collection
+    {
+        if (empty($this->tasting_tags)) {
+            return collect();
+        }
+        return TasteTag::whereIn('slug', $this->tasting_tags)->orderBy('name')->get();
+    }
+
+    public function goToColorStep(): void
+    {
+        $this->formStep = 1;
+        $this->selectedTasteCategory = null;
     }
 
     public function startReveal(): void
@@ -377,6 +433,8 @@ class SessionRoom extends Component
                 'sessionName' => $this->tastingSession->name,
                 'title' => $this->tastingSession->name,
                 'tastingSessionId' => $this->tastingSession->id,
+                'joinUrl' => $this->getJoinUrlProperty(),
+                'joinCode' => $this->tastingSession->code,
             ]);
     }
 }

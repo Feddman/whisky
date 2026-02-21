@@ -16,7 +16,33 @@
                     <flux:link href="{{ route('dashboard') }}" wire:navigate>{{ __('Dashboard') }}</flux:link>
                 @endif
                 @if (isset($tastingSessionId))
-                    <a href="{{ route('tasting.leave', $tastingSessionId) }}" class="text-flux-primary hover:underline">{{ __('Leave session') }}</a>
+                    <div class="relative inline-block">
+                        <button id="shareToggle" type="button" class="text-sm inline-flex items-center gap-2 px-3 py-1 rounded-md border border-zinc-200 bg-white dark:bg-zinc-900">Share</button>
+                        <div id="shareMenu" class="hidden absolute right-0 mt-2 w-56 rounded-md bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-700 shadow-lg p-3 z-50">
+                            <div class="text-sm mb-2 font-medium">{{ __('session.share') }}</div>
+                            <div class="flex flex-col gap-2">
+                                <button class="text-left text-sm px-2 py-1 rounded hover:bg-zinc-100 dark:hover:bg-zinc-800" onclick="navigator.clipboard.writeText('{{ $joinUrl ?? '' }}')">{{ __('session.copy') }}</button>
+                                <a class="text-left text-sm px-2 py-1 rounded hover:bg-zinc-100 dark:hover:bg-zinc-800" target="_blank" rel="noopener" href="https://api.whatsapp.com/send?text={{ urlencode(__('session.join_link_message', ['url' => $joinUrl ?? ''])) }}">{{ __('session.share_whatsapp') }}</a>
+                                <div class="border-t pt-2 mt-2 text-xs text-zinc-500">{{ __('session.join_code') }}: <strong>{{ $joinCode ?? '' }}</strong></div>
+                            </div>
+                        </div>
+                    </div>
+                    <script>
+                        (function() {
+                            var toggle = document.getElementById('shareToggle');
+                            var menu = document.getElementById('shareMenu');
+                            if (! toggle || ! menu) return;
+                            toggle.addEventListener('click', function(e) { e.stopPropagation(); menu.classList.toggle('hidden'); });
+                            menu.addEventListener('click', function(e) { e.stopPropagation(); });
+                            document.addEventListener('click', function() { menu.classList.add('hidden'); });
+                            document.addEventListener('keydown', function(e) { if (e.key === 'Escape') menu.classList.add('hidden'); });
+                        })();
+                    </script>
+                    @guest
+                        <a href="#" class="text-flux-primary hover:underline" onclick="if (confirm({{ json_encode(__('session.leave_guest_warning')) }})) { window.location = '{{ route('tasting.leave', $tastingSessionId) }}'; } return false;">{{ __('session.leave_session') }}</a>
+                    @else
+                        <a href="#" class="text-flux-primary hover:underline" onclick="if (confirm({{ json_encode(__('session.leave_confirm')) }})) { window.location = '{{ route('tasting.leave', $tastingSessionId) }}'; } return false;">{{ __('session.leave_session') }}</a>
+                    @endguest
                 @endif
             </div>
         </header>

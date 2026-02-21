@@ -20,6 +20,8 @@ class DatabaseSeeder extends Seeder
             'email' => 'test@example.com',
         ]);
 
-        $this->call(TasteTagSeeder::class);
+        // Seed taste tag categories first, then tags so tags can reference category IDs
+        $this->call(\Database\Seeders\TasteTagCategorySeeder::class);
+        $this->call(\Database\Seeders\TasteTagSeeder::class);
     }
 }
