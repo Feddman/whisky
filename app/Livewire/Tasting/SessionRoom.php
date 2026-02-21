@@ -327,25 +327,39 @@ class SessionRoom extends Component
         }
 
         $key = 'slainte.'.$this->tastingSession->id;
+        $lockKey = 'slainte.lock.'.$this->tastingSession->id;
         $total = $this->tastingSession->activeParticipants()->count();
         $now = time();
 
-        $data = Cache::get($key);
-        if (! $data || ($now - $data['started_at']) > 3) {
-            $data = ['started_at' => $now, 'pressed' => []];
-        }
-
-        if (! in_array($participant->id, $data['pressed'], true)) {
-            $data['pressed'][] = $participant->id;
-        }
-
-        if (count($data['pressed']) >= $total) {
-            Cache::forget($key);
-            broadcast(new SlainteSuccess($this->tastingSession->id))->toOthers();
+        $lock = Cache::lock($lockKey, 5);
+        if (! $lock->get()) {
             return;
         }
 
-        Cache::put($key, $data, 5);
+        try {
+            $data = Cache::get($key);
+            if (! $data || ($now - $data['started_at']) > 3) {
+                $data = ['started_at' => $now, 'pressed' => []];
+            }
+
+            if (! in_array($participant->id, $data['pressed'], true)) {
+                $data['pressed'][] = $participant->id;
+            }
+
+            if (count($data['pressed']) >= $total) {
+                Cache::forget($key);
+                $lock->release();
+                broadcast(new SlainteSuccess($this->tastingSession->id))->toOthers();
+                return;
+            }
+
+            Cache::put($key, $data, 5);
+            $lock->release();
+        } catch (\Throwable $e) {
+            $lock->release();
+            throw $e;
+        }
+
         broadcast(new SlaintePressed(
             $this->tastingSession->id,
             count($data['pressed']),

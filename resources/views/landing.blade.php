@@ -30,7 +30,6 @@
                     </div>
                 </div>
 
-                <div class="mt-4 text-xs text-neutral-500 dark:text-neutral-400">{{ __('landing.built_with') }}</div>
             </section>
 
             <div class="w-full max-w-60 p-4 bg-linear-to-br from-[#ffffff] to-[#fff2f2] dark:from-[#161615] dark:to-[#1D0002] rounded-xl shadow-sm">
