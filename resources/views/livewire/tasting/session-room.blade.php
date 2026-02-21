@@ -2,6 +2,7 @@
     class="mx-auto max-w-4xl space-y-8"
     x-data="{
         participantEmojis: {},
+        showEmojiPicker: false,
         slainteActive: false,
         slaintePressedCount: 0,
         slainteTotal: 1,
@@ -129,27 +130,45 @@
             </div>
         </div>
 
-        <p class="mt-3 text-sm font-medium text-zinc-600 dark:text-zinc-400">{{ __('Send an emoji') }}</p>
-        <div class="mt-1 flex flex-wrap gap-1">
-            @foreach (\App\Livewire\Tasting\SessionRoom::EMOJI_LIST as $emoji)
-                <button type="button" wire:click="sendEmoji('{{ $emoji }}')" class="rounded-lg border border-zinc-300 bg-white px-2 py-1.5 text-xl transition hover:bg-zinc-100 dark:border-zinc-600 dark:bg-zinc-800 dark:hover:bg-zinc-700" title="{{ $emoji }}">{{ $emoji }}</button>
-            @endforeach
+        <div class="mt-3">
+            <div class="flex items-center justify-between">
+                <p class="text-sm font-medium text-zinc-600 dark:text-zinc-400">{{ __('Send an emoji') }}</p>
+                <button
+                    type="button"
+                    x-on:click="showEmojiPicker = !showEmojiPicker"
+                    class="inline-flex items-center gap-2 px-3 py-1.5 rounded-md border border-zinc-200 bg-white text-sm font-medium text-zinc-700 hover:bg-zinc-100 dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-200 dark:hover:bg-zinc-700"
+                    aria-pressed="false"
+                >
+                    <span class="text-lg leading-none">😊</span>
+                    <span>{{ __('Emoji') }}</span>
+                </button>
+            </div>
+
+            <div class="mt-1 flex flex-wrap gap-1" x-show="showEmojiPicker" x-cloak x-transition>
+                @foreach (\App\Livewire\Tasting\SessionRoom::EMOJI_LIST as $emoji)
+                    <button type="button" x-on:click="showEmojiPicker = false" wire:click="sendEmoji('{{ $emoji }}')" class="rounded-lg border border-zinc-300 bg-white px-2 py-1.5 text-xl transition hover:bg-zinc-100 dark:border-zinc-600 dark:bg-zinc-800 dark:hover:bg-zinc-700" title="{{ $emoji }}">{{ $emoji }}</button>
+                @endforeach
+            </div>
         </div>
 
         <p class="mt-4 text-sm text-zinc-500" x-show="!slainteActive" x-transition>{{ __('Everyone must press within 3 seconds to celebrate!') }}</p>
         <p class="mt-4 text-sm font-medium text-green-600 dark:text-green-400" x-show="slainteActive" x-transition x-cloak style="display: none;">
             <span><span x-text="slaintePressedCount + ' / ' + slainteTotal"></span> {{ __('pressed — press now!') }}</span>
         </p>
-        <button
-            type="button"
-            wire:click="pressSlainte"
-            class="mt-3 inline-flex items-center justify-center rounded-lg px-5 py-3 text-base font-semibold text-white shadow-lg"
-            style="background-color: #2563eb; min-height: 48px; min-width: 180px;"
-            :style="slainteActive ? 'background-color: #16a34a;' : 'background-color: #2563eb;'"
-            :class="slainteActive && 'animate-wiggle'"
-        >
-            {{ __('Slàinte Mhath') }}
-        </button>
+        <div class="mt-4 flex justify-center">
+            <button
+                type="button"
+                wire:click="pressSlainte"
+                class="inline-flex items-center justify-center gap-3 rounded-none px-6 py-3 text-lg font-extrabold text-neutral-900 shadow-2xl transform transition-transform duration-150 hover:scale-105"
+                style="min-height:54px; min-width:220px; background-image: linear-gradient(135deg,#F8B803 0%,#FFCD55 100%);"
+                :class="slainteActive ? 'animate-wiggle ring-4 ring-amber-300/40' : ''"
+                aria-pressed="false"
+                title="{{ __('Slàinte Mhath') }}"
+            >
+                <span class="text-2xl">🥃</span>
+                <span>{{ __('Slàinte Mhath') }}</span>
+            </button>
+        </div>
     </section>
 
     {{-- All submitted: host starts reveal, others wait --}}
