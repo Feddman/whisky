@@ -16,7 +16,10 @@ return new class extends Migration
             $table->json('taste_tags'); // array of tag slugs
             $table->timestamps();
 
-            $table->unique(['tasting_round_id', 'session_participant_id']);
+            $table->unique(
+                ['tasting_round_id', 'session_participant_id'],
+                'ts_rid_spid_uq'
+            );
         });
     }
 
