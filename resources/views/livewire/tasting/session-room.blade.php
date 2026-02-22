@@ -83,7 +83,7 @@
     @endif
 
     {{-- Players + emojis + Slàinte (always first so button is visible) --}}
-    <section class="rounded-xl border border-zinc-200 bg-zinc-50 p-4  ">
+    <section class="rounded-xl border border-zinc-200 bg-zinc-50 dark:border-zinc-700 dark:bg-zinc-900 p-4  ">
         <flux:heading size="lg">{{ __('session.players') }}</flux:heading>
         <div class="mt-2 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
             @foreach ($tastingSession->activeParticipants as $p)
@@ -93,7 +93,7 @@
                         <img data-avatar-img="{{ $p->id }}" src="https://api.dicebear.com/8.x/croodles/svg?seed={{ urlencode($p->avatar_seed ?? $p->display_name) }}" alt="{{ $p->display_name }}" class="w-12 h-12 rounded-md" />
                     </button>
                     <div class="flex-1">
-                        <div class="font-medium"><span data-participant-name>{{ $p->display_name }}</span> @if($p->is_host)<span class="text-zinc-500 text-sm">({{ __('Host') }})</span>@endif</div>
+                        <div class="font-medium"><span data-participant-name class="text-zinc-800 dark:text-neutral-500">{{ $p->display_name }}</span> @if($p->is_host)<span class="text-zinc-500 text-sm">({{ __('Host') }})</span>@endif</div>
                         <div class="text-xs text-zinc-500">{{ $p->total_score }} {{ __('pts') }}</div>
                     </div>
                     <div class="flex flex-col items-end gap-2">
@@ -199,7 +199,7 @@
 
     {{-- All submitted: host starts reveal, others wait --}}
     @if ($tastingSession->status === 'awaiting_reveal')
-        <section class="rounded-lg border border-zinc-200 bg-zinc-50 p-6">
+        <section class="rounded-lg border border-zinc-200 bg-zinc-50 dark:border-zinc-700 dark:bg-zinc-900 p-6">
             @can('update', $tastingSession)
                 <flux:heading size="lg">{{ __('session.everyone_submitted') }}</flux:heading>
                 <flux:text class="mt-2">{{ __('session.start_reveal_ready') }}</flux:text>
@@ -407,7 +407,7 @@
                     <flux:text class="mt-2 max-w-xl mx-auto">{{ $revealDrink->description }}</flux:text>
                 @endif
             </div>
-            <div class="rounded-xl border border-zinc-200 p-6">
+            <div class="rounded-xl border dark:border-zinc-700 border-zinc-200 p-6">
                 <flux:heading size="lg">{{ __('session.scoreboard') }}</flux:heading>
                 <flux:text class="mt-1 text-zinc-500">{{ __('session.this_round') }}: {{ $revealRound->team_total ?? 0 }} {{ __('session.points') }}</flux:text>
                 <ul class="mt-4 space-y-2">
@@ -415,7 +415,7 @@
                         @php
                             $roundPoints = ($revealRound->round_score ?? [])[$p->id] ?? 0;
                         @endphp
-                        <li class="flex items-center justify-between rounded-lg bg-zinc-100 px-4 py-2">
+                        <li class="flex items-center justify-between rounded-lg bg-zinc-100 px-4 py-2 dark:bg-zinc-800">
                             <span>{{ $p->display_name }}</span>
                             <span class="font-medium">{{ $roundPoints }} {{ __('session.pts') }} ({{ __('session.total') }}: {{ $p->total_score }})</span>
                         </li>
