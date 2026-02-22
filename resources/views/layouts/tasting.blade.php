@@ -93,6 +93,7 @@
                 .animate-wiggle { animation: wiggle 0.35s ease-in-out infinite; }
             </style>
             <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.2/dist/confetti.browser.min.js" crossorigin="anonymous"></script>
+            <script src="https://cdn.jsdelivr.net/gh/bijection/smoke.js@master/smoke.js" crossorigin="anonymous"></script>
         @endif
 
         @fluxScripts

@@ -12,29 +12,57 @@
         avatarModalSeed: null,
         avatarModalSeedName: '',
         avatarSeeds: ['oak','maple','ember','classic','storm','midnight','sunset','moss','pepper','sable','ginger','copper'],
-        // Reveal modal + smoke canvas
+        // Reveal modal + smoke canvas (smoke first, then image and text appear slowly)
         showRevealModal: false,
+        smokeOverlayOpacity: 1,
+        revealImageVisible: false,
+        revealTextVisible: false,
         smokeCanvas: null,
         smokeCtx: null,
         smokeParticles: [],
         smokeRAF: null,
         smokeRunning: false,
+        smokeMachineInstance: null,
+        smokeResizeHandler: null,
         init() {
             var self = this;
             ['tasting-players-updated','round-started','submission-received','reveal-started','everyone-submitted'].forEach(function(e) {
                 window.addEventListener(e, function() { $wire.$refresh(); });
             });
 
-            // Also open reveal modal and start smoke when reveal-started fires
-            window.addEventListener('reveal-started', function() {
-                self.showRevealModal = true;
-                self.$nextTick(() => { self.startSmoke(); });
-            });
+            // Bridge Livewire-emitted events to window CustomEvents so Alpine handlers work
+            if (window.Livewire && Livewire.on) {
+                Livewire.on('reveal-started', function() { window.dispatchEvent(new CustomEvent('reveal-started')); });
+                Livewire.on('reveal-countdown-started', function() { window.dispatchEvent(new CustomEvent('reveal-countdown-started')); });
+                Livewire.on('submission-received', function() { window.dispatchEvent(new CustomEvent('submission-received')); });
+                Livewire.on('everyone-submitted', function() { window.dispatchEvent(new CustomEvent('everyone-submitted')); });
+            }
 
-            // Close modal when session updates away from reveal
-            window.addEventListener('tasting-players-updated', function() {
-                if (! self.showRevealModal) return;
-                // if Livewire refresh changed status, keep modal open until user closes
+            // Open reveal modal: smoke ~5s, then drink appears slowly underneath, then smoke fades out
+            window.addEventListener('reveal-countdown-finished', function() {
+                self.smokeOverlayOpacity = 1;
+                self.revealImageVisible = false;
+                self.revealTextVisible = false;
+                self.showRevealModal = true;
+                self.$nextTick(function() {
+                    setTimeout(function() {
+                        self.startSmoke();
+                        setTimeout(function() {
+                            self.revealImageVisible = true;
+                            setTimeout(function() { self.revealTextVisible = true; }, 600);
+                        }, 5000);
+                        setTimeout(function() {
+                            self.smokeOverlayOpacity = 0;
+                        }, 7500);
+                    }, 350);
+                });
+            });
+            // Page loaded in reveal state (e.g. refresh): show drink only, no smoke
+            window.addEventListener('reveal-show-now', function() {
+                self.smokeOverlayOpacity = 0;
+                self.revealImageVisible = true;
+                self.revealTextVisible = true;
+                self.showRevealModal = true;
             });
 
             window.addEventListener('emoji-reaction', function(e) {
@@ -83,68 +111,106 @@
         },
         startSmoke() {
             if (this.smokeRunning) return;
-            this.smokeRunning = true;
             var canvas = this.$refs.smokeCanvas;
             if (! canvas) return;
             this.smokeCanvas = canvas;
-            this.smokeCtx = canvas.getContext('2d');
-            const resize = () => {
-                canvas.width = window.innerWidth;
-                canvas.height = window.innerHeight;
+            var self = this;
+            var resize = function() {
+                var w = canvas.parentElement ? canvas.parentElement.offsetWidth : window.innerWidth;
+                var h = canvas.parentElement ? canvas.parentElement.offsetHeight : window.innerHeight;
+                if (w && h) {
+                    canvas.width = w;
+                    canvas.height = h;
+                } else {
+                    canvas.width = window.innerWidth;
+                    canvas.height = window.innerHeight;
+                }
             };
             resize();
+            self.smokeResizeHandler = resize;
             window.addEventListener('resize', resize);
 
-            // particle factory
-            const make = () => ({
-                x: Math.random() * canvas.width,
-                y: canvas.height + (Math.random() * 200),
-                vx: (Math.random() - 0.5) * 0.3,
-                vy: - (0.2 + Math.random() * 0.6),
-                size: 20 + Math.random() * 80,
-                life: 0,
-                ttl: 200 + Math.random() * 200,
-                alpha: 0.06 + Math.random() * 0.12,
-            });
+            if (typeof window.SmokeMachine === 'function') {
+                this.smokeRunning = true;
+                this.smokeCtx = canvas.getContext('2d');
+                var ctx = this.smokeCtx;
+                var smoke = window.SmokeMachine(ctx, [200, 190, 180]);
+                this.smokeMachineInstance = smoke;
+                var w = canvas.width;
+                var h = canvas.height;
+                var bottomY = h + 40;
+                var longerLife = { minLifetime: 6000, maxLifetime: 18000 };
+                smoke.addSmoke(w / 2, bottomY, 350, longerLife);
+                setTimeout(function() { smoke.addSmoke(w * 0.25, bottomY, 180, longerLife); }, 150);
+                setTimeout(function() { smoke.addSmoke(w * 0.75, bottomY, 180, longerLife); }, 300);
+                setTimeout(function() { smoke.addSmoke(w / 2, bottomY - 20, 150, longerLife); }, 500);
+                setTimeout(function() { smoke.addSmoke(w * 0.4, bottomY, 120, longerLife); }, 800);
+                setTimeout(function() { smoke.addSmoke(w * 0.6, bottomY, 120, longerLife); }, 1100);
+                setTimeout(function() { smoke.addSmoke(w / 2, bottomY, 100, longerLife); }, 1400);
+                setTimeout(function() { smoke.addSmoke(w * 0.2, bottomY, 80, longerLife); }, 1700);
+                setTimeout(function() { smoke.addSmoke(w * 0.8, bottomY, 80, longerLife); }, 2000);
+                smoke.start();
+                return;
+            }
 
-            for (var i = 0; i < 25; i++) this.smokeParticles.push(make());
-
-            const step = () => {
-                const ctx = this.smokeCtx;
-                ctx.clearRect(0,0,canvas.width,canvas.height);
-                for (let i = 0; i < this.smokeParticles.length; i++) {
-                    const p = this.smokeParticles[i];
+            this.smokeRunning = true;
+            this.smokeCtx = canvas.getContext('2d');
+            var make = function() {
+                return {
+                    x: Math.random() * canvas.width,
+                    y: canvas.height + (Math.random() * 200),
+                    vx: (Math.random() - 0.5) * 0.25,
+                    vy: - (0.15 + Math.random() * 0.45),
+                    size: 25 + Math.random() * 90,
+                    life: 0,
+                    ttl: 500 + Math.random() * 800,
+                    alpha: 0.07 + Math.random() * 0.12,
+                };
+            };
+            for (var i = 0; i < 45; i++) this.smokeParticles.push(make());
+            var step = function() {
+                if (! self.smokeRunning || ! self.smokeCtx) return;
+                var ctx = self.smokeCtx;
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                for (var j = 0; j < self.smokeParticles.length; j++) {
+                    var p = self.smokeParticles[j];
                     p.x += p.vx;
                     p.y += p.vy;
                     p.life++;
-                    const lifeRatio = p.life / p.ttl;
-                    const alpha = p.alpha * (1 - lifeRatio);
-                    const grd = ctx.createRadialGradient(p.x, p.y, 0, p.x, p.y, p.size);
+                    var lifeRatio = p.life / p.ttl;
+                    var alpha = p.alpha * (1 - lifeRatio);
+                    var grd = ctx.createRadialGradient(p.x, p.y, 0, p.x, p.y, p.size);
                     grd.addColorStop(0, 'rgba(255,255,255,' + alpha + ')');
-                    grd.addColorStop(0.4, 'rgba(200,200,200,' + (alpha*0.6) + ')');
+                    grd.addColorStop(0.4, 'rgba(200,200,200,' + (alpha * 0.6) + ')');
                     grd.addColorStop(1, 'rgba(120,120,120,0)');
                     ctx.fillStyle = grd;
                     ctx.beginPath();
-                    ctx.arc(p.x, p.y, p.size, 0, Math.PI*2);
+                    ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
                     ctx.fill();
-
-                    if (p.life > p.ttl) {
-                        // respawn at bottom
-                        this.smokeParticles[i] = make();
-                    }
+                    if (p.life > p.ttl) self.smokeParticles[j] = make();
                 }
-                this.smokeRAF = requestAnimationFrame(step);
+                self.smokeRAF = requestAnimationFrame(step);
             };
-
             this.smokeRAF = requestAnimationFrame(step);
         },
         stopSmoke() {
-            if (! this.smokeRunning) return;
+            if (this.smokeResizeHandler) {
+                window.removeEventListener('resize', this.smokeResizeHandler);
+                this.smokeResizeHandler = null;
+            }
+            if (this.smokeMachineInstance) {
+                try { this.smokeMachineInstance.stop(); } catch (e) {}
+                this.smokeMachineInstance = null;
+            }
             this.smokeRunning = false;
             if (this.smokeRAF) cancelAnimationFrame(this.smokeRAF);
+            this.smokeRAF = null;
             this.smokeParticles = [];
-            if (this.smokeCanvas && this.smokeCtx) this.smokeCtx.clearRect(0,0,this.smokeCanvas.width,this.smokeCanvas.height);
-            this.smokeCanvas = null; this.smokeCtx = null; this.smokeRAF = null;
+            if (this.smokeCanvas && this.smokeCtx) {
+                this.smokeCtx.clearRect(0, 0, this.smokeCanvas.width, this.smokeCanvas.height);
+            }
+            this.smokeCanvas = null;
+            this.smokeCtx = null;
         },
     }"
 >
@@ -157,6 +223,46 @@
         .emoji-floating {
             pointer-events: none;
             animation: emoji-pulse 0.6s ease-in-out 0s 3 forwards;
+        }
+        /* Reveal countdown: dark gradient + pulse */
+        .reveal-countdown-bg {
+            background: radial-gradient(ellipse 120% 120% at 50% 50%, #1c1917 0%, #0c0a09 50%, #000 100%);
+        }
+        .reveal-countdown-num {
+            animation: reveal-num-pulse 0.85s ease-out forwards;
+            text-shadow: 0 0 40px rgba(255,200,100,0.4), 0 0 80px rgba(255,180,50,0.2);
+        }
+        @keyframes reveal-num-pulse {
+            0% { transform: scale(0.3); opacity: 0; }
+            15% { transform: scale(1.15); opacity: 1; }
+            30% { transform: scale(1); opacity: 1; }
+            85% { transform: scale(1); opacity: 1; }
+            100% { transform: scale(1.1); opacity: 0.6; }
+        }
+        /* Reveal modal entrance */
+        .reveal-modal-card {
+            animation: reveal-card-in 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+        }
+        .reveal-modal-card .reveal-drink-image {
+            animation: reveal-image-in 0.8s ease-out 0.2s both;
+        }
+        .reveal-modal-card .reveal-drink-name {
+            animation: reveal-text-in 0.5s ease-out 0.35s both;
+        }
+        .reveal-modal-card .reveal-drink-meta {
+            animation: reveal-text-in 0.5s ease-out 0.45s both;
+        }
+        @keyframes reveal-card-in {
+            0% { transform: scale(0.7); opacity: 0; }
+            100% { transform: scale(1); opacity: 1; }
+        }
+        @keyframes reveal-image-in {
+            0% { transform: scale(0.8); opacity: 0; filter: blur(8px); }
+            100% { transform: scale(1); opacity: 1; filter: blur(0); }
+        }
+        @keyframes reveal-text-in {
+            0% { opacity: 0; transform: translateY(12px); }
+            100% { opacity: 1; transform: translateY(0); }
         }
     </style>
 
@@ -243,30 +349,42 @@
             </div>
         </div>
 
-        <!-- Reveal modal (smoke background) -->
-        <div x-show="showRevealModal" x-cloak x-transition class="fixed inset-0 z-50 flex items-center justify-center">
-            <canvas x-ref="smokeCanvas" class="absolute inset-0 w-full h-full pointer-events-none"></canvas>
-            <div class="relative z-10 max-w-3xl w-full px-4">
-                <div class="rounded-xl bg-white/95 p-6 text-center shadow-2xl">
+        <!-- Reveal modal: smoke on top, then fades slowly to reveal drink underneath -->
+        <div x-show="showRevealModal" x-cloak x-transition:enter="transition ease-out duration-300" x-transition:enter-start="opacity-0" x-transition:enter-end="opacity-100" class="fixed inset-0 z-50 flex items-center justify-center bg-black/80">
+            <!-- Close button: always visible top-right -->
+            <button type="button" x-on:click="showRevealModal = false; smokeOverlayOpacity = 1; revealImageVisible = false; revealTextVisible = false; stopSmoke();" class="absolute top-4 right-4 z-[60] flex h-10 w-10 items-center justify-center rounded-full bg-white/90 dark:bg-zinc-800/90 text-zinc-700 dark:text-zinc-200 shadow-lg hover:bg-white dark:hover:bg-zinc-700 transition" aria-label="{{ __('Close') }}">
+                <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+            </button>
+            <!-- Drink card: underneath the smoke (visible from start but covered) -->
+            <div class="absolute inset-0 z-10 flex items-center justify-center px-4 py-12 pt-16">
+                <div class="reveal-modal-card max-w-3xl w-full rounded-2xl bg-white/98 dark:bg-zinc-900/98 p-8 md:p-10 text-center shadow-2xl ring-2 ring-amber-400/30 border border-amber-200/50 dark:border-amber-600/30">
                     @php
                         $revealRound = $this->getCurrentRoundProperty();
                         $revealDrink = $revealRound ? $revealRound->drink : null;
                     @endphp
-                    <flux:heading size="xl" class="mb-4">{{ __('session.reveal') }}</flux:heading>
+                    <p class="text-sm font-semibold uppercase tracking-widest text-amber-600 dark:text-amber-400 mb-4">{{ __('session.reveal') }}</p>
                     @if ($revealDrink && $revealDrink->image)
-                        <img src="{{ $revealDrink->imageUrl() }}" alt="{{ $revealDrink->name }}" class="mx-auto max-h-72 rounded-lg object-contain" />
+                        <div x-show="revealImageVisible" x-cloak x-transition:enter="transition ease-out duration-[1200ms]" x-transition:enter-start="opacity-0 scale-95" x-transition:enter-end="opacity-100 scale-100" class="overflow-hidden">
+                            <img src="{{ $revealDrink->imageUrl() }}" alt="{{ $revealDrink->name }}" class="mx-auto max-h-80 rounded-xl object-contain shadow-lg" />
+                        </div>
                     @endif
-                    <flux:heading size="lg" class="mt-4">{{ $revealDrink ? $revealDrink->name : '' }}</flux:heading>
-                    @if ($revealDrink && ($revealDrink->year || $revealDrink->location))
-                        <flux:text class="text-zinc-500">{{ $revealDrink->year }} {{ $revealDrink->location }}</flux:text>
-                    @endif
-                    @if ($revealDrink && $revealDrink->description)
-                        <flux:text class="mt-2 max-w-xl mx-auto">{{ $revealDrink->description }}</flux:text>
-                    @endif
-                    <div class="mt-4">
-                        <button type="button" x-on:click="(showRevealModal=false, stopSmoke())" class="px-4 py-2 rounded bg-zinc-800 text-white">{{ __('Close') }}</button>
+                    <div x-show="revealTextVisible" x-cloak x-transition:enter="transition ease-out duration-[1000ms]" x-transition:enter-start="opacity-0 translate-y-4" x-transition:enter-end="opacity-100 translate-y-0">
+                        <h2 class="reveal-drink-name mt-6 text-3xl md:text-4xl font-bold text-zinc-900 dark:text-white">{{ $revealDrink ? $revealDrink->name : '' }}</h2>
+                        @if ($revealDrink && ($revealDrink->year || $revealDrink->location))
+                            <p class="reveal-drink-meta mt-1 text-lg text-zinc-500 dark:text-zinc-400">{{ $revealDrink->year }} {{ $revealDrink->location }}</p>
+                        @endif
+                        @if ($revealDrink && $revealDrink->description)
+                            <p class="reveal-drink-meta mt-3 max-w-xl mx-auto text-zinc-600 dark:text-zinc-300">{{ $revealDrink->description }}</p>
+                        @endif
+                    </div>
+                    <div class="mt-8" x-show="revealTextVisible" x-cloak x-transition:enter="transition ease-out duration-500" x-transition:enter-start="opacity-0" x-transition:enter-end="opacity-100">
+                        <button type="button" x-on:click="showRevealModal = false; smokeOverlayOpacity = 1; revealImageVisible = false; revealTextVisible = false; stopSmoke();" class="px-6 py-2.5 rounded-lg bg-zinc-800 dark:bg-zinc-700 text-white font-medium hover:bg-zinc-700 dark:hover:bg-zinc-600 transition">{{ __('Close') }}</button>
                     </div>
                 </div>
+            </div>
+            <!-- Smoke layer: on top, fades out after a few seconds to reveal drink -->
+            <div class="absolute inset-0 z-20 pointer-events-none flex items-center justify-center transition-opacity duration-[2500ms] ease-out" :style="'opacity: ' + smokeOverlayOpacity">
+                <canvas x-ref="smokeCanvas" class="absolute inset-0 w-full h-full" style="width: 100%; height: 100%;"></canvas>
             </div>
         </div>
 
@@ -501,6 +619,7 @@
 
     {{-- Reveal + Scoreboard (when round just finished) --}}
     @if ($tastingSession->status === 'round_reveal' && $this->getCurrentRoundProperty())
+        <script>/* If page loads in reveal state (e.g. refresh), show drink modal without smoke */ window.dispatchEvent(new CustomEvent('reveal-show-now'));</script>
         @php
             $revealRound = $this->getCurrentRoundProperty();
         @endphp
@@ -587,7 +706,7 @@
         @endif
     @endcan
 
-    {{-- Reveal countdown overlay: 3, 2, 1 then refresh to show reveal + score --}}
+    {{-- Reveal countdown overlay: 3, 2, 1 then reveal modal --}}
     <div
         x-data="{
             show: false,
@@ -605,19 +724,27 @@
                             clearInterval(iv);
                             setTimeout(function() {
                                 self.show = false;
-                                $wire.$refresh();
-                            }, 500);
+                                var p = typeof $wire.$refresh === 'function' ? $wire.$refresh() : Promise.resolve();
+                                (p && p.then ? p : Promise.resolve()).then(function() {
+                                    window.dispatchEvent(new CustomEvent('reveal-countdown-finished'));
+                                });
+                            }, 450);
                         }
                     }, 1000);
                 });
             }
         }"
         x-show="show"
-        x-transition
-        class="fixed inset-0 z-50 flex items-center justify-center bg-black/80"
+        x-transition:enter="transition ease-out duration-200"
+        x-transition:enter-start="opacity-0"
+        x-transition:enter-end="opacity-100"
+        x-transition:leave="transition ease-in duration-300"
+        x-transition:leave-start="opacity-100"
+        x-transition:leave-end="opacity-0"
+        class="fixed inset-0 z-[60] flex items-center justify-center reveal-countdown-bg"
         style="display: none;"
     >
-        <p class="text-9xl font-bold text-white drop-shadow-2xl" x-text="num" x-show="num > 0"></p>
+        <p class="reveal-countdown-num text-[min(28vw,18rem)] font-black text-white tracking-tighter drop-shadow-2xl select-none" x-text="num" x-show="num > 0" x-transition></p>
     </div>
 
     {{-- Slàinte success overlay: confetti + text --}}

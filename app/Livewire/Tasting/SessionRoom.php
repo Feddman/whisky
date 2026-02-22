@@ -305,7 +305,12 @@ class SessionRoom extends Component
             SessionParticipant::where('id', $participantId)->increment('total_score', $points);
         }
         $this->tastingSession->update(['status' => 'round_reveal']);
+
+        // Everyone (including host) sees 3, 2, 1 countdown first, then the reveal modal.
+        $this->dispatch('reveal-countdown-started');
         broadcast(new RevealCountdownStarted($this->tastingSession->id));
+        broadcast(new RevealStarted($this->tastingSession->id))->toOthers();
+
         $this->tastingSession->refresh();
     }
 
