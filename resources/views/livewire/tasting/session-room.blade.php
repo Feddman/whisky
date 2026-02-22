@@ -248,7 +248,7 @@
                             @endphp
 
                             <label class="block text-sm font-medium text-zinc-700">{{ __('session.color_optional') }}</label>
-                            <div class="mt-3 grid grid-cols-3 gap-3 max-w-md">
+                            <div class="mt-3 grid grid-cols-1 sm:grid-cols-3 gap-3 max-w-md">
                                 @foreach ($colorOptions as $c)
                                     @php $isSelected = $tasting_color === $c['value']; @endphp
                                     <button
@@ -302,7 +302,7 @@
 
                             {{-- Category grid: from DB (tasteCategoryList); click to open modal with that category's tags --}}
                             <p class="mt-4 text-sm font-medium text-zinc-600">{{ __('Choose a category') }}</p>
-                            <div class="mt-3 grid grid-cols-2 sm:grid-cols-3 gap-3">
+                            <div class="mt-3 grid grid-cols-1 sm:grid-cols-3 gap-3">
                                 @foreach($this->tasteCategoryList as $cat)
                                     @php $isSelected = $selectedTasteCategory === $cat->slug; @endphp
                                     <button
