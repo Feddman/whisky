@@ -3,9 +3,8 @@
 
 <title>{{ $title ?? config('app.name') }}</title>
 
-<link rel="icon" href="{{ file_exists(public_path('uploads/logo.ico')) ? '/uploads/logo.ico' : '/favicon.ico' }}" sizes="any">
-<link rel="icon" href="{{ file_exists(public_path('uploads/logo.svg')) ? '/uploads/logo.svg' : '/favicon.svg' }}" type="image/svg+xml">
-<link rel="apple-touch-icon" href="{{ file_exists(public_path('uploads/apple-touch-icon.png')) ? '/uploads/apple-touch-icon.png' : '/apple-touch-icon.png' }}">
+<link rel="icon" href="{{ file_exists(public_path('uploads/logo.png')) ? '/uploads/logo.png' : '/favicon.ico' }}" sizes="any">
+<link rel="icon" href="{{ file_exists(public_path('uploads/logo.png')) ? '/uploads/logo.png' : '/favicon.svg' }}" type="image/svg+xml">
 
 <link rel="preconnect" href="https://fonts.bunny.net">
 <link href="https://fonts.bunny.net/css?family=instrument-sans:400,500,600" rel="stylesheet" />

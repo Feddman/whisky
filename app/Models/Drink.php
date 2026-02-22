@@ -64,4 +64,29 @@ class Drink extends Model
 
         return $path;
     }
+
+    /**
+     * Ensure image files are deleted from storage when the model is deleted.
+     */
+    protected static function booted(): void
+    {
+        static::deleting(function (self $drink) {
+            if (! $drink->image) {
+                return;
+            }
+
+            // try removing from both disks (uploads preferred)
+            try {
+                Storage::disk('uploads')->delete($drink->image);
+            } catch (\Throwable $e) {
+                // noop
+            }
+
+            try {
+                Storage::disk('public')->delete($drink->image);
+            } catch (\Throwable $e) {
+                // noop
+            }
+        });
+    }
 }

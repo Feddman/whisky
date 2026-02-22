@@ -9,7 +9,7 @@
             <header class="w-full border-b border-neutral-200 dark:border-neutral-700 bg-transparent">
                 <div class="max-w-6xl mx-auto px-6 py-4 flex items-center justify-between">
                     <a href="{{ route('home') }}" class="flex items-center gap-3">
-                        <div class="w-10 h-10 rounded-lg bg-[#F8B803] dark:bg-[#F0ACB8] flex items-center justify-center text-white font-semibold">GW</div>
+                        <img src="{{ file_exists(public_path('uploads/logo.png')) ? '/uploads/logo.svg' : '/favicon.svg' }}" alt="{{ config('app.name') }}" class="w-10 h-10 rounded-lg object-contain" />
                         <span class="font-semibold">Guardians of Whisky</span>
                     </a>
                     <nav class="flex items-center gap-3 text-sm">
