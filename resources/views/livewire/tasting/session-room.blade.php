@@ -77,17 +77,17 @@
 
     {{-- Informational banner shown at the start when session is in setup --}}
     @if($tastingSession->status === 'setup')
-        <div class="rounded-md bg-amber-50 dark:bg-amber-900/30 p-3 text-center text-sm text-amber-800 dark:text-amber-200">
+        <div class="rounded-md bg-amber-50  p-3 text-center text-sm text-amber-800 ">
             {{ __('session.wait_host_prepare') }}
         </div>
     @endif
 
     {{-- Players + emojis + Slàinte (always first so button is visible) --}}
-    <section class="rounded-xl border border-zinc-200 bg-zinc-50 p-4 dark:border-zinc-700 dark:bg-zinc-900">
+    <section class="rounded-xl border border-zinc-200 bg-zinc-50 p-4  ">
         <flux:heading size="lg">{{ __('session.players') }}</flux:heading>
         <div class="mt-2 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
             @foreach ($tastingSession->activeParticipants as $p)
-                <div data-participant-id="{{ $p->id }}" x-data="{ emojiVisible:false }" x-init="$watch(() => participantEmojis[{{ $p->id }}], (v) => { if (v) { emojiVisible = true; setTimeout(() => { emojiVisible = false; }, 2000); } })" class="relative flex items-center gap-3 rounded-lg border border-zinc-200 bg-white p-3 dark:border-zinc-700 dark:bg-zinc-900">
+                <div data-participant-id="{{ $p->id }}" x-data="{ emojiVisible:false }" x-init="$watch(() => participantEmojis[{{ $p->id }}], (v) => { if (v) { emojiVisible = true; setTimeout(() => { emojiVisible = false; }, 2000); } })" class="relative flex items-center gap-3 rounded-lg border border-zinc-200 bg-white p-3">
                     <span x-show="emojiVisible" x-transition class="absolute -top-3 -right-3 text-3xl leading-none emoji-floating" style="z-index:30;"> <span x-text="participantEmojis[{{ $p->id }}] || ''"></span></span>
                     <button type="button" class="shrink-0" data-participant-id="{{ $p->id }}" data-avatar-seed="{{ e($p->avatar_seed ?? $p->display_name) }}" data-display-name="{{ e($p->display_name) }}" x-on:click.prevent="openAvatarModalFromEl($event.currentTarget)">
                         <img data-avatar-img="{{ $p->id }}" src="https://api.dicebear.com/8.x/croodles/svg?seed={{ urlencode($p->avatar_seed ?? $p->display_name) }}" alt="{{ $p->display_name }}" class="w-12 h-12 rounded-md" />
@@ -108,7 +108,7 @@
 
         <!-- Avatar picker modal -->
         <div x-show="avatarModalOpen" x-cloak x-transition class="fixed inset-0 z-50 flex items-center justify-center bg-black/60">
-            <div class="w-full max-w-lg rounded-lg bg-white p-4 dark:bg-zinc-900">
+            <div class="w-full max-w-lg rounded-lg bg-white p-4">
                 <div class="flex items-center justify-between mb-3">
                     <div class="font-semibold">{{ __('session.choose_avatar') }}</div>
                     <div class="flex items-center gap-2">
@@ -139,8 +139,8 @@
 
                 <!-- centered round shuffle button -->
                 <div class="mt-4 flex justify-center">
-                    <button type="button" x-on:click.prevent="randomizeSeeds()" class="inline-flex items-center justify-center w-10 h-10 rounded-full bg-zinc-100 hover:bg-zinc-200 dark:bg-zinc-800 dark:hover:bg-zinc-700" aria-label="{{ __('session.randomize') }}" title="{{ __('session.randomize') }}">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 text-zinc-700 dark:text-zinc-200" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <button type="button" x-on:click.prevent="randomizeSeeds()" class="inline-flex items-center justify-center w-10 h-10 rounded-full bg-zinc-100 hover:bg-zinc-200" aria-label="{{ __('session.randomize') }}" title="{{ __('session.randomize') }}">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 text-zinc-700" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                             <path d="M21 12a9 9 0 1 0-9 9" />
                             <polyline points="21 3 21 9 15 9" />
                         </svg>
@@ -163,7 +163,7 @@
                 <button
                     type="button"
                     x-on:click="showEmojiPicker = !showEmojiPicker"
-                    class="inline-flex items-center gap-2 px-3 py-1.5 rounded-md border border-zinc-200 bg-white text-sm font-medium text-zinc-700 hover:bg-zinc-100 dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-200 dark:hover:bg-zinc-700"
+                    class="inline-flex items-center gap-2 px-3 py-1.5 rounded-md border border-zinc-200 bg-white text-sm font-medium text-zinc-700 hover:bg-zinc-100"
                     aria-pressed="false"
                 >
                     <span class="text-lg leading-none">😊</span>
@@ -173,12 +173,12 @@
 
             <div class="mt-1 flex flex-wrap gap-1" x-show="showEmojiPicker" x-cloak x-transition>
                 @foreach (\App\Livewire\Tasting\SessionRoom::EMOJI_LIST as $emoji)
-                    <button type="button" x-on:click="showEmojiPicker = false" wire:click="sendEmoji('{{ $emoji }}')" class="rounded-lg border border-zinc-300 bg-white px-2 py-1.5 text-xl transition hover:bg-zinc-100 dark:border-zinc-600 dark:bg-zinc-800 dark:hover:bg-zinc-700" title="{{ $emoji }}">{{ $emoji }}</button>
+                    <button type="button" x-on:click="showEmojiPicker = false" wire:click="sendEmoji('{{ $emoji }}')" class="rounded-lg border border-zinc-300 bg-white px-2 py-1.5 text-xl transition hover:bg-zinc-100" title="{{ $emoji }}">{{ $emoji }}</button>
                 @endforeach
             </div>
         </div>
 
-        <p class="mt-4 text-sm font-medium text-green-600 dark:text-green-400" x-show="slainteActive" x-transition x-cloak style="display: none;">
+        <p class="mt-4 text-sm font-medium text-green-600" x-show="slainteActive" x-transition x-cloak style="display: none;">
             <span><span x-text="slaintePressedCount + ' / ' + slainteTotal"></span> {{ __('session.pressed_press_now') }}</span>
         </p>
         <div class="mt-4 flex justify-center">
@@ -199,7 +199,7 @@
 
     {{-- All submitted: host starts reveal, others wait --}}
     @if ($tastingSession->status === 'awaiting_reveal')
-        <section class="rounded-lg border border-zinc-200 bg-zinc-50 p-6 dark:border-zinc-700 dark:bg-zinc-900">
+        <section class="rounded-lg border border-zinc-200 bg-zinc-50 p-6">
             @can('update', $tastingSession)
                 <flux:heading size="lg">{{ __('session.everyone_submitted') }}</flux:heading>
                 <flux:text class="mt-2">{{ __('session.start_reveal_ready') }}</flux:text>
@@ -223,12 +223,12 @@
             $participantsCount = $tastingSession->activeParticipants()->count();
         @endphp
         @if ($hasSubmitted)
-            <section class="rounded-lg border border-zinc-200 bg-zinc-50 p-6 dark:border-zinc-700 dark:bg-zinc-900">
+            <section class="rounded-lg border border-zinc-200 bg-zinc-50 p-6">
                 <flux:heading size="lg">{{ __('Waiting for others') }}</flux:heading>
                 <flux:text>{{ $submissionsCount }} / {{ $participantsCount }} {{ __('have submitted') }}</flux:text>
             </section>
         @elseif ($currentParticipant)
-            <section class="rounded-lg border border-zinc-200 p-6 dark:border-zinc-700">
+            <section class="rounded-lg border border-zinc-200 p-6">
                 <flux:heading size="lg">{{ __('session.tasting_notes') }}</flux:heading>
                 <form wire:submit="submitTasting" class="mt-4 space-y-6">
                     @if ($formStep === 1)
@@ -247,7 +247,7 @@
                                 ];
                             @endphp
 
-                            <label class="block text-sm font-medium text-zinc-700 dark:text-zinc-300">{{ __('session.color_optional') }}</label>
+                            <label class="block text-sm font-medium text-zinc-700">{{ __('session.color_optional') }}</label>
                             <div class="mt-3 grid grid-cols-3 gap-3 max-w-md">
                                 @foreach ($colorOptions as $c)
                                     @php $isSelected = $tasting_color === $c['value']; @endphp
@@ -283,16 +283,16 @@
                             @if(session('taste_tag_limit'))
                                 <div class="mt-2 text-sm text-rose-600">{{ session('taste_tag_limit') }}</div>
                             @endif
-                            <div class="mt-3 text-sm text-zinc-600 dark:text-zinc-400">{{ __('session.pick_up_to', ['max' => $maxTags]) }} — <strong>{{ $selectedCount }}</strong> {{ __('session.selected') }}</div>
+                            <div class="mt-3 text-sm text-zinc-600">{{ __('session.pick_up_to', ['max' => $maxTags]) }} — <strong>{{ $selectedCount }}</strong> {{ __('session.selected') }}</div>
 
                             @php $selectedTags = $this->selectedTasteTagModels; @endphp
                             @if($selectedTags->isNotEmpty())
-                                <p class="mt-4 text-sm font-medium text-zinc-600 dark:text-zinc-400">{{ __('Your chosen tags') }}</p>
+                                <p class="mt-4 text-sm font-medium text-zinc-600">{{ __('Your chosen tags') }}</p>
                                 <div class="mt-2 flex flex-wrap gap-2">
                                     @foreach($selectedTags as $tag)
-                                        <span class="inline-flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium rounded-full bg-flux-primary/15 text-flux-primary dark:bg-flux-primary/25 dark:text-flux-primary border border-flux-primary/30">
+                                        <span class="inline-flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium rounded-full bg-flux-primary/15 text-flux-primary border border-flux-primary/30">
                                             {{ $tag->name }}
-                                            <button type="button" wire:click="toggleTasteTag('{{ $tag->slug }}')" class="rounded-full p-0.5 hover:bg-flux-primary/20 dark:hover:bg-flux-primary/30" aria-label="{{ __('Remove') }} {{ $tag->name }}">
+                                            <button type="button" wire:click="toggleTasteTag('{{ $tag->slug }}')" class="rounded-full p-0.5 hover:bg-flux-primary/20" aria-label="{{ __('Remove') }} {{ $tag->name }}">
                                                 <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
                                             </button>
                                         </span>
@@ -301,19 +301,19 @@
                             @endif
 
                             {{-- Category grid: from DB (tasteCategoryList); click to open modal with that category's tags --}}
-                            <p class="mt-4 text-sm font-medium text-zinc-600 dark:text-zinc-400">{{ __('Choose a category') }}</p>
+                            <p class="mt-4 text-sm font-medium text-zinc-600">{{ __('Choose a category') }}</p>
                             <div class="mt-3 grid grid-cols-2 sm:grid-cols-3 gap-3">
                                 @foreach($this->tasteCategoryList as $cat)
                                     @php $isSelected = $selectedTasteCategory === $cat->slug; @endphp
                                     <button
                                         type="button"
                                         wire:click="$set('selectedTasteCategory', '{{ $cat->slug }}')"
-                                        class="flex flex-col items-center justify-center gap-2 rounded-xl border-2 p-6 text-center transition hover:border-flux-primary hover:shadow-md focus:outline-none focus:ring-2 focus:ring-flux-primary/50 {{ $isSelected ? 'border-flux-primary bg-flux-primary/5 dark:bg-flux-primary/10 ring-2 ring-flux-primary/30' : 'border-zinc-200 dark:border-zinc-600 bg-white dark:bg-zinc-800' }}"
+                                        class="flex flex-col items-center justify-center gap-2 rounded-xl border-2 p-6 text-center transition hover:border-flux-primary hover:shadow-md focus:outline-none focus:ring-2 focus:ring-flux-primary/50 {{ $isSelected ? 'border-flux-primary bg-flux-primary/5 ring-2 ring-flux-primary/30' : 'border-zinc-200 bg-white' }}"
                                     >
                                         @if($cat->emoji)
                                             <span class="text-4xl leading-none">{{ $cat->emoji }}</span>
                                         @endif
-                                        <span class="text-base font-semibold text-zinc-800 dark:text-zinc-200">{{ $cat->name }}</span>
+                                        <span class="text-base font-semibold text-zinc-800">{{ $cat->name }}</span>
                                     </button>
                                 @endforeach
                             </div>
@@ -332,21 +332,21 @@
                                     aria-labelledby="taste-category-modal-title"
                                 >
                                     <div
-                                        class="w-full max-w-lg max-h-[85vh] overflow-auto rounded-xl border border-zinc-200 bg-white dark:border-zinc-600 dark:bg-zinc-900 shadow-xl"
+                                        class="w-full max-w-lg max-h-[85vh] overflow-auto rounded-xl border border-zinc-200 bg-white shadow-xl"
                                         x-data
                                         x-on:click.stop
                                     >
-                                        <div class="sticky top-0 flex items-center justify-between gap-3 border-b border-zinc-200 dark:border-zinc-600 bg-white dark:bg-zinc-900 px-4 py-3">
+                                        <div class="sticky top-0 flex items-center justify-between gap-3 border-b border-zinc-200 bg-white px-4 py-3">
                                             <div class="flex items-center gap-2">
                                                 @if($modalCat && $modalCat->emoji)
                                                     <span class="text-2xl">{{ $modalCat->emoji }}</span>
                                                 @endif
-                                                <h2 id="taste-category-modal-title" class="text-lg font-semibold text-zinc-800 dark:text-zinc-200">{{ $modalCat ? $modalCat->name : $selectedTasteCategory }}</h2>
+                                                <h2 id="taste-category-modal-title" class="text-lg font-semibold text-zinc-800">{{ $modalCat ? $modalCat->name : $selectedTasteCategory }}</h2>
                                             </div>
                                             <button
                                                 type="button"
                                                 wire:click="$set('selectedTasteCategory', null)"
-                                                class="rounded-lg p-2 text-zinc-500 hover:bg-zinc-100 hover:text-zinc-800 dark:hover:bg-zinc-700 dark:hover:text-zinc-200"
+                                                class="rounded-lg p-2 text-zinc-500 hover:bg-zinc-100 hover:text-zinc-800"
                                                 aria-label="{{ __('Close') }}"
                                             >
                                                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
@@ -361,13 +361,13 @@
                                                 <button
                                                     type="button"
                                                     wire:click="toggleTasteTag('{{ $tag->slug }}')"
-                                                    class="inline-flex items-center gap-2 px-4 py-2.5 text-sm border-2 rounded-full transition {{ $isSelected ? 'bg-zinc-900 text-white border-zinc-900 dark:bg-white dark:text-zinc-900 dark:border-white' : 'bg-white dark:bg-zinc-800 border-zinc-200 dark:border-zinc-600 text-zinc-700 dark:text-zinc-200' }} {{ $disabled ? 'opacity-50 pointer-events-none' : 'hover:shadow hover:border-zinc-300 dark:hover:border-zinc-500' }}"
+                                                    class="inline-flex items-center gap-2 px-4 py-2.5 text-sm border-2 rounded-full transition {{ $isSelected ? 'bg-zinc-900 text-white border-zinc-900' : 'bg-white border-zinc-200 text-zinc-700' }} {{ $disabled ? 'opacity-50 pointer-events-none' : 'hover:shadow hover:border-zinc-300' }}"
                                                     aria-pressed="{{ $isSelected ? 'true' : 'false' }}"
                                                     title="{{ $tag->name }}"
                                                 >
                                                     <span class="font-medium">{{ $tag->name }}</span>
                                                     @if($isSelected)
-                                                        <span class="inline-flex bg-white dark:bg-zinc-900 text-zinc-900 dark:text-white rounded-full w-5 h-5 items-center justify-center text-xs">✓</span>
+                                                        <span class="inline-flex bg-white text-zinc-900 rounded-full w-5 h-5 items-center justify-center text-xs">✓</span>
                                                     @endif
                                                 </button>
                                             @endforeach
@@ -394,7 +394,7 @@
             $revealDrink = $revealRound->drink;
         @endphp
         <section class="space-y-8">
-            <div class="rounded-xl border border-zinc-200 bg-zinc-50 p-6 text-center opacity-0 transition duration-700 dark:border-zinc-700 dark:bg-zinc-900" x-data x-init="setTimeout(() => $el.classList.add('opacity-100'), 100)">
+            <div class="rounded-xl border border-zinc-200 bg-zinc-50 p-6 text-center opacity-0 transition duration-700" x-data x-init="setTimeout(() => $el.classList.add('opacity-100'), 100)">
                 <flux:heading size="xl" class="mb-4">{{ __('session.reveal') }}</flux:heading>
                 @if ($revealDrink->image)
                     <img src="{{ $revealDrink->imageUrl() }}" alt="{{ $revealDrink->name }}" class="mx-auto max-h-64 rounded-lg object-contain" />
@@ -407,7 +407,7 @@
                     <flux:text class="mt-2 max-w-xl mx-auto">{{ $revealDrink->description }}</flux:text>
                 @endif
             </div>
-            <div class="rounded-xl border border-zinc-200 p-6 dark:border-zinc-700">
+            <div class="rounded-xl border border-zinc-200 p-6">
                 <flux:heading size="lg">{{ __('session.scoreboard') }}</flux:heading>
                 <flux:text class="mt-1 text-zinc-500">{{ __('session.this_round') }}: {{ $revealRound->team_total ?? 0 }} {{ __('session.points') }}</flux:text>
                 <ul class="mt-4 space-y-2">
@@ -415,7 +415,7 @@
                         @php
                             $roundPoints = ($revealRound->round_score ?? [])[$p->id] ?? 0;
                         @endphp
-                        <li class="flex items-center justify-between rounded-lg bg-zinc-100 px-4 py-2 dark:bg-zinc-800">
+                        <li class="flex items-center justify-between rounded-lg bg-zinc-100 px-4 py-2">
                             <span>{{ $p->display_name }}</span>
                             <span class="font-medium">{{ $roundPoints }} {{ __('session.pts') }} ({{ __('session.total') }}: {{ $p->total_score }})</span>
                         </li>
@@ -441,7 +441,7 @@
 
 
             @if ($showAddDrink || $editing_drink_id)
-                <div class="mt-4 rounded-lg border border-zinc-200 p-4 dark:border-zinc-700">
+                <div class="mt-4 rounded-lg border border-zinc-200 p-4">
                     <flux:heading size="sm">{{ $editing_drink_id ? __('session.edit_drink') : __('session.new_drink') }}</flux:heading>
                     <form wire:submit="{{ $editing_drink_id ? 'updateDrink' : 'addDrink' }}" class="mt-3 flex flex-col gap-3">
                         <flux:input wire:model="drink_name" :label="__('session.name')" required />
@@ -459,7 +459,7 @@
 
             <ul class="mt-4 space-y-2">
                 @forelse ($tastingSession->drinks as $drink)
-                    <li class="flex items-center justify-between rounded-lg border border-zinc-200 p-3 dark:border-zinc-700">
+                    <li class="flex items-center justify-between rounded-lg border border-zinc-200 p-3">
                         <div class="flex items-center gap-3">
                             @if ($drink->image)
                                 <img src="{{ $drink->imageUrl() }}" alt="{{ $drink->name }}" class="w-20 h-12 rounded-md object-cover" />
@@ -481,7 +481,7 @@
                         </div>
                     </li>
                 @empty
-                    <li class="rounded-lg border border-dashed border-zinc-300 p-4 text-center text-zinc-500 dark:border-zinc-600">{{ __('session.no_drinks') }}</li>
+                    <li class="rounded-lg border border-dashed border-zinc-300 p-4 text-center text-zinc-500">{{ __('session.no_drinks') }}</li>
                 @endforelse
             </ul>
         </section>
