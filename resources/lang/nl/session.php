@@ -23,6 +23,7 @@ return [
     'next' => 'Volgende',
     'taste_palate' => 'Smaak',
     'pick_up_to' => 'Kies maximaal :max tags.',
+    'choose_category' => 'Kies een categorie',
     'back' => 'Terug',
     'submit' => 'Verstuur',
     'reveal' => 'Onthulling',

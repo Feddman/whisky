@@ -301,7 +301,7 @@
                             @endif
 
                             {{-- Category grid: from DB (tasteCategoryList); click to open modal with that category's tags --}}
-                            <p class="mt-4 text-sm font-medium text-zinc-600">{{ __('Choose a category') }}</p>
+                            <p class="mt-4 text-sm font-medium text-zinc-600">{{ __('session.choose_category') }}</p>
                             <div class="mt-3 grid grid-cols-1 sm:grid-cols-3 gap-3">
                                 @foreach($this->tasteCategoryList as $cat)
                                     @php $isSelected = $selectedTasteCategory === $cat->slug; @endphp
