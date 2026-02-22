@@ -12,11 +12,31 @@
         avatarModalSeed: null,
         avatarModalSeedName: '',
         avatarSeeds: ['oak','maple','ember','classic','storm','midnight','sunset','moss','pepper','sable','ginger','copper'],
+        // Reveal modal + smoke canvas
+        showRevealModal: false,
+        smokeCanvas: null,
+        smokeCtx: null,
+        smokeParticles: [],
+        smokeRAF: null,
+        smokeRunning: false,
         init() {
             var self = this;
             ['tasting-players-updated','round-started','submission-received','reveal-started','everyone-submitted'].forEach(function(e) {
                 window.addEventListener(e, function() { $wire.$refresh(); });
             });
+
+            // Also open reveal modal and start smoke when reveal-started fires
+            window.addEventListener('reveal-started', function() {
+                self.showRevealModal = true;
+                self.$nextTick(() => { self.startSmoke(); });
+            });
+
+            // Close modal when session updates away from reveal
+            window.addEventListener('tasting-players-updated', function() {
+                if (! self.showRevealModal) return;
+                // if Livewire refresh changed status, keep modal open until user closes
+            });
+
             window.addEventListener('emoji-reaction', function(e) {
                 var d = e.detail && e.detail.data ? e.detail.data : (e.detail || {});
                 if (d.participantId && d.emoji) self.participantEmojis[d.participantId] = d.emoji;
@@ -60,7 +80,72 @@
             var arr = [];
             for (var i = 0; i < 12; i++) arr.push(Math.random().toString(36).substring(2, 9));
             this.avatarSeeds = arr;
-        }
+        },
+        startSmoke() {
+            if (this.smokeRunning) return;
+            this.smokeRunning = true;
+            var canvas = this.$refs.smokeCanvas;
+            if (! canvas) return;
+            this.smokeCanvas = canvas;
+            this.smokeCtx = canvas.getContext('2d');
+            const resize = () => {
+                canvas.width = window.innerWidth;
+                canvas.height = window.innerHeight;
+            };
+            resize();
+            window.addEventListener('resize', resize);
+
+            // particle factory
+            const make = () => ({
+                x: Math.random() * canvas.width,
+                y: canvas.height + (Math.random() * 200),
+                vx: (Math.random() - 0.5) * 0.3,
+                vy: - (0.2 + Math.random() * 0.6),
+                size: 20 + Math.random() * 80,
+                life: 0,
+                ttl: 200 + Math.random() * 200,
+                alpha: 0.06 + Math.random() * 0.12,
+            });
+
+            for (var i = 0; i < 25; i++) this.smokeParticles.push(make());
+
+            const step = () => {
+                const ctx = this.smokeCtx;
+                ctx.clearRect(0,0,canvas.width,canvas.height);
+                for (let i = 0; i < this.smokeParticles.length; i++) {
+                    const p = this.smokeParticles[i];
+                    p.x += p.vx;
+                    p.y += p.vy;
+                    p.life++;
+                    const lifeRatio = p.life / p.ttl;
+                    const alpha = p.alpha * (1 - lifeRatio);
+                    const grd = ctx.createRadialGradient(p.x, p.y, 0, p.x, p.y, p.size);
+                    grd.addColorStop(0, 'rgba(255,255,255,' + alpha + ')');
+                    grd.addColorStop(0.4, 'rgba(200,200,200,' + (alpha*0.6) + ')');
+                    grd.addColorStop(1, 'rgba(120,120,120,0)');
+                    ctx.fillStyle = grd;
+                    ctx.beginPath();
+                    ctx.arc(p.x, p.y, p.size, 0, Math.PI*2);
+                    ctx.fill();
+
+                    if (p.life > p.ttl) {
+                        // respawn at bottom
+                        this.smokeParticles[i] = make();
+                    }
+                }
+                this.smokeRAF = requestAnimationFrame(step);
+            };
+
+            this.smokeRAF = requestAnimationFrame(step);
+        },
+        stopSmoke() {
+            if (! this.smokeRunning) return;
+            this.smokeRunning = false;
+            if (this.smokeRAF) cancelAnimationFrame(this.smokeRAF);
+            this.smokeParticles = [];
+            if (this.smokeCanvas && this.smokeCtx) this.smokeCtx.clearRect(0,0,this.smokeCanvas.width,this.smokeCanvas.height);
+            this.smokeCanvas = null; this.smokeCtx = null; this.smokeRAF = null;
+        },
     }"
 >
     <style>
@@ -153,6 +238,33 @@
                     <div class="mt-2 text-right">
                         <button type="button" x-on:click.prevent="avatarModalOpen = false" class="text-sm text-zinc-500 mr-2">{{ __('session.close') }}</button>
                         <button type="button" x-on:click.prevent="(async () => { await $wire.call('updateParticipant', avatarModalParticipantId, avatarModalSeedName, avatarModalSeed); avatarModalOpen = false; })()" class="text-sm text-white px-3 py-1 rounded" style="background-color: #2563eb;">{{ __('session.save') }}</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Reveal modal (smoke background) -->
+        <div x-show="showRevealModal" x-cloak x-transition class="fixed inset-0 z-50 flex items-center justify-center">
+            <canvas x-ref="smokeCanvas" class="absolute inset-0 w-full h-full pointer-events-none"></canvas>
+            <div class="relative z-10 max-w-3xl w-full px-4">
+                <div class="rounded-xl bg-white/95 p-6 text-center shadow-2xl">
+                    @php
+                        $revealRound = $this->getCurrentRoundProperty();
+                        $revealDrink = $revealRound ? $revealRound->drink : null;
+                    @endphp
+                    <flux:heading size="xl" class="mb-4">{{ __('session.reveal') }}</flux:heading>
+                    @if ($revealDrink && $revealDrink->image)
+                        <img src="{{ $revealDrink->imageUrl() }}" alt="{{ $revealDrink->name }}" class="mx-auto max-h-72 rounded-lg object-contain" />
+                    @endif
+                    <flux:heading size="lg" class="mt-4">{{ $revealDrink ? $revealDrink->name : '' }}</flux:heading>
+                    @if ($revealDrink && ($revealDrink->year || $revealDrink->location))
+                        <flux:text class="text-zinc-500">{{ $revealDrink->year }} {{ $revealDrink->location }}</flux:text>
+                    @endif
+                    @if ($revealDrink && $revealDrink->description)
+                        <flux:text class="mt-2 max-w-xl mx-auto">{{ $revealDrink->description }}</flux:text>
+                    @endif
+                    <div class="mt-4">
+                        <button type="button" x-on:click="(showRevealModal=false, stopSmoke())" class="px-4 py-2 rounded bg-zinc-800 text-white">{{ __('Close') }}</button>
                     </div>
                 </div>
             </div>
@@ -391,40 +503,27 @@
     @if ($tastingSession->status === 'round_reveal' && $this->getCurrentRoundProperty())
         @php
             $revealRound = $this->getCurrentRoundProperty();
-            $revealDrink = $revealRound->drink;
         @endphp
         <section class="space-y-8">
             <div class="rounded-xl border border-zinc-200 bg-zinc-50 p-6 text-center opacity-0 transition duration-700" x-data x-init="setTimeout(() => $el.classList.add('opacity-100'), 100)">
-                <flux:heading size="xl" class="mb-4">{{ __('session.reveal') }}</flux:heading>
-                @if ($revealDrink->image)
-                    <img src="{{ $revealDrink->imageUrl() }}" alt="{{ $revealDrink->name }}" class="mx-auto max-h-64 rounded-lg object-contain" />
-                @endif
-                <flux:heading size="lg" class="mt-4">{{ $revealDrink->name }}</flux:heading>
-                @if ($revealDrink->year || $revealDrink->location)
-                    <flux:text class="text-zinc-500">{{ $revealDrink->year }} {{ $revealDrink->location }}</flux:text>
-                @endif
-                @if ($revealDrink->description)
-                    <flux:text class="mt-2 max-w-xl mx-auto">{{ $revealDrink->description }}</flux:text>
-                @endif
-            </div>
-            <div class="rounded-xl border dark:border-zinc-700 border-zinc-200 p-6">
-                <flux:heading size="lg">{{ __('session.scoreboard') }}</flux:heading>
-                <flux:text class="mt-1 text-zinc-500">{{ __('session.this_round') }}: {{ $revealRound->team_total ?? 0 }} {{ __('session.points') }}</flux:text>
-                <ul class="mt-4 space-y-2">
-                    @foreach ($tastingSession->activeParticipants as $p)
-                        @php
-                            $roundPoints = ($revealRound->round_score ?? [])[$p->id] ?? 0;
-                        @endphp
-                        <li class="flex items-center justify-between rounded-lg bg-zinc-100 px-4 py-2 dark:bg-zinc-800">
-                            <span>{{ $p->display_name }}</span>
-                            <span class="font-medium">{{ $roundPoints }} {{ __('session.pts') }} ({{ __('session.total') }}: {{ $p->total_score }})</span>
-                        </li>
-                    @endforeach
-                </ul>
-                @can('update', $tastingSession)
-                    <flux:button variant="primary" class="mt-6" wire:click="continueToSetup">{{ __('session.back_to_setup') }}</flux:button>
-                @endcan
-            </div>
+                {{-- reveal modal will show the drink image; keep original scoreboard below --}}
+             
+             <flux:heading size="lg">{{ __('session.scoreboard') }}</flux:heading>
+             <flux:text class="mt-1 text-zinc-500">{{ __('session.this_round') }}: {{ $revealRound->team_total ?? 0 }} {{ __('session.points') }}</flux:text>
+             <ul class="mt-4 space-y-2">
+                @foreach ($tastingSession->activeParticipants as $p)
+                    @php
+                        $roundPoints = ($revealRound->round_score ?? [])[$p->id] ?? 0;
+                    @endphp
+                    <li class="flex items-center justify-between rounded-lg bg-zinc-100 px-4 py-2 dark:bg-zinc-800">
+                        <span>{{ $p->display_name }}</span>
+                        <span class="font-medium">{{ $roundPoints }} {{ __('session.pts') }} ({{ __('session.total') }}: {{ $p->total_score }})</span>
+                    </li>
+                @endforeach
+            </ul>
+            @can('update', $tastingSession)
+                <flux:button variant="primary" class="mt-6" wire:click="continueToSetup">{{ __('session.back_to_setup') }}</flux:button>
+            @endcan
         </section>
     @endif
 
