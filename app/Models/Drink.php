@@ -43,13 +43,21 @@ class Drink extends Model
             return null;
         }
 
+        // Prefer uploads disk for images stored in uploads, otherwise fallback to public
+        if (Storage::disk('uploads')->exists($this->image)) {
+            return Storage::disk('uploads')->url($this->image);
+        }
+
         return Storage::disk('public')->url($this->image);
     }
 
     public function storeImage(UploadedFile $file): string
     {
-        $path = $file->store('drinks', 'public');
+        // store on uploads disk inside /drinks
+        $path = $file->store('drinks', 'uploads');
         if ($this->image) {
+            // attempt to delete previous on both disks
+            Storage::disk('uploads')->delete($this->image);
             Storage::disk('public')->delete($this->image);
         }
         $this->update(['image' => $path]);

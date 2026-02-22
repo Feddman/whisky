@@ -460,11 +460,19 @@
             <ul class="mt-4 space-y-2">
                 @forelse ($tastingSession->drinks as $drink)
                     <li class="flex items-center justify-between rounded-lg border border-zinc-200 p-3 dark:border-zinc-700">
-                        <div>
-                            <span class="font-medium">{{ $drink->name }}</span>
-                            @if ($drink->year)
-                                <span class="text-zinc-500">({{ $drink->year }})</span>
+                        <div class="flex items-center gap-3">
+                            @if ($drink->image)
+                                <img src="{{ $drink->imageUrl() }}" alt="{{ $drink->name }}" class="w-20 h-12 rounded-md object-cover" />
                             @endif
+                            <div>
+                                <span class="font-medium">{{ $drink->name }}</span>
+                                @if ($drink->year)
+                                    <span class="text-zinc-500">({{ $drink->year }})</span>
+                                @endif
+                                @if ($drink->location)
+                                    <div class="text-xs text-zinc-500">{{ $drink->location }}</div>
+                                @endif
+                            </div>
                         </div>
                         <div class="flex gap-2">
                             <flux:button size="sm" variant="primary" wire:click="startRound({{ $drink->id }})">{{ __('Start round') }}</flux:button>
