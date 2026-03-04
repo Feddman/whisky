@@ -36,7 +36,7 @@
                             <div class="flex flex-col gap-2">
                                 <button class="text-left text-sm px-2 py-1 rounded hover:bg-zinc-100" onclick="navigator.clipboard.writeText('{{ $joinUrl ?? '' }}')">{{ __('session.copy') }}</button>
                                 <a class="text-left text-sm px-2 py-1 rounded hover:bg-zinc-100" target="_blank" rel="noopener" href="https://api.whatsapp.com/send?text={{ urlencode(__('session.join_link_message', ['url' => $joinUrl ?? ''])) }}">{{ __('session.share_whatsapp') }}</a>
-                                <div class="border-t pt-2 mt-2 text-xs text-zinc-500">{{ __('session.join_code') }}: <strong>{{ $joinCode ?? '' }}</strong></div>
+                                <div class="border-t pt-2 mt-2 text-xs text-zinc-800">{{ __('session.join_code') }}: <strong>{{ $joinCode ?? '' }}</strong></div>
                             </div>
                         </div>
                     </div>

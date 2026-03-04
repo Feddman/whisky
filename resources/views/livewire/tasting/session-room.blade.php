@@ -289,13 +289,13 @@
                         <img data-avatar-img="{{ $p->id }}" src="https://api.dicebear.com/8.x/croodles/svg?seed={{ urlencode($p->avatar_seed ?? $p->display_name) }}" alt="{{ $p->display_name }}" class="w-12 h-12 rounded-md" />
                     </button>
                     <div class="flex-1">
-                        <div class="font-medium"><span data-participant-name class="text-zinc-800">{{ $p->display_name }}</span> @if($p->is_host)<span class="text-zinc-500 text-sm">({{ __('Host') }})</span>@endif</div>
-                        <div class="text-xs text-zinc-500">{{ $p->total_score }} {{ __('pts') }}</div>
+                        <div class="font-medium"><span data-participant-name class="text-zinc-800">{{ $p->display_name }}</span> @if($p->is_host)<span class="text-zinc-800 text-sm">({{ __('Host') }})</span>@endif</div>
+                        <div class="text-xs text-zinc-800">{{ $p->total_score }} {{ __('pts') }}</div>
                     </div>
                     <div class="flex flex-col items-end gap-2">
                         @php $current = $this->getCurrentParticipantProperty(); @endphp
                         @if(($current && $current->id === $p->id) || (auth()->check() && auth()->user()->can('update', $tastingSession)))
-                            <button type="button" data-participant-id="{{ $p->id }}" data-avatar-seed="{{ e($p->avatar_seed ?? $p->display_name) }}" data-display-name="{{ e($p->display_name) }}" x-on:click.prevent="openAvatarModalFromEl($event.currentTarget)" class="text-xs text-zinc-500 hover:underline">{{ __('join.change') }}</button>
+                            <button type="button" data-participant-id="{{ $p->id }}" data-avatar-seed="{{ e($p->avatar_seed ?? $p->display_name) }}" data-display-name="{{ e($p->display_name) }}" x-on:click.prevent="openAvatarModalFromEl($event.currentTarget)" class="text-xs text-zinc-800 hover:underline">{{ __('join.change') }}</button>
                         @endif
                     </div>
                 </div>
@@ -308,7 +308,7 @@
                 <div class="flex items-center justify-between mb-3">
                     <div class="font-semibold">{{ __('session.choose_avatar') }}</div>
                     <div class="flex items-center gap-2">
-                        <button type="button" x-on:click.prevent="avatarModalOpen = false" class="text-sm text-zinc-500">{{ __('session.close') }}</button>
+                        <button type="button" x-on:click.prevent="avatarModalOpen = false" class="text-sm text-zinc-800">{{ __('session.close') }}</button>
                     </div>
                 </div>
 
@@ -344,10 +344,10 @@
                 </div>
 
                 <div class="mt-4">
-                    <label class="block text-sm text-zinc-600 mb-1">{{ __('session.your_name') }}</label>
+                    <label class="block text-sm text-zinc-800 mb-1">{{ __('session.your_name') }}</label>
                     <input x-model="avatarModalSeedName" type="text" class="w-full rounded-md border px-3 py-2" placeholder="Your display name" />
                     <div class="mt-2 text-right">
-                        <button type="button" x-on:click.prevent="avatarModalOpen = false" class="text-sm text-zinc-500 mr-2">{{ __('session.close') }}</button>
+                        <button type="button" x-on:click.prevent="avatarModalOpen = false" class="text-sm text-zinc-800 mr-2">{{ __('session.close') }}</button>
                         <button type="button" x-on:click.prevent="(async () => { await $wire.call('updateParticipant', avatarModalParticipantId, avatarModalSeedName, avatarModalSeed); avatarModalOpen = false; })()" class="text-sm text-white px-3 py-1 rounded" style="background-color: #2563eb;">{{ __('session.save') }}</button>
                     </div>
                 </div>
@@ -362,7 +362,7 @@
             </button>
             <!-- Drink card: underneath the smoke (visible from start but covered) -->
             <div class="relative z-10 flex w-full items-center justify-center px-4">
-                <div class="reveal-modal-card my-8 max-w-3xl w-full rounded-2xl bg-white/98 p-8 md:p-10 text-center shadow-2xl ring-2 ring-amber-400/30 border border-amber-200/50">
+                <div class="reveal-modal-card my-8 max-w-3xl w-full rounded-2xl bg-white p-8 md:p-10 text-center shadow-2xl ring-2 ring-amber-400/30 border border-amber-200/50">
                     @php
                         $revealRound = $this->getCurrentRoundProperty();
                         $revealDrink = $revealRound ? $revealRound->drink : null;
@@ -379,10 +379,10 @@
                     <div x-show="revealTextVisible" x-cloak x-transition:enter="transition ease-out duration-[1000ms]" x-transition:enter-start="opacity-0 translate-y-4" x-transition:enter-end="opacity-100 translate-y-0">
                         <h2 class="reveal-drink-name mt-6 text-3xl md:text-4xl font-bold text-zinc-900">{{ $revealDrink ? $revealDrink->name : '' }}</h2>
                         @if ($revealDrink && ($revealDrink->year || $revealDrink->location))
-                            <p class="reveal-drink-meta mt-1 text-lg text-zinc-500">{{ $revealDrink->year }} {{ $revealDrink->location }}</p>
+                            <p class="reveal-drink-meta mt-1 text-lg text-zinc-800">{{ $revealDrink->year }} {{ $revealDrink->location }}</p>
                         @endif
                         @if ($revealDrink && $revealDrink->description)
-                            <p class="reveal-drink-meta mt-3 max-w-xl mx-auto text-zinc-600">{{ $revealDrink->description }}</p>
+                            <p class="reveal-drink-meta mt-3 max-w-xl mx-auto text-zinc-800">{{ $revealDrink->description }}</p>
                         @endif
                     @if($avgRating !== null)
                         <div class="mt-4 flex items-center justify-center gap-3">
@@ -555,7 +555,7 @@
                                 @endforeach
                             </div>
 
-                            <div class="mt-2 text-xs text-zinc-500">{{ __('session.selected') }}: <strong>{{ $tasting_color ?: __('session.none_selected') }}</strong></div>
+                            <div class="mt-2 text-xs text-zinc-800">{{ __('session.selected') }}: <strong>{{ $tasting_color ?: __('session.none_selected') }}</strong></div>
 
                             <flux:button type="button" variant="primary" class="mt-4" wire:click="$set('formStep', 2)">{{ __('session.next') }}</flux:button>
                         </div>
@@ -567,14 +567,14 @@
                         @endphp
                         <div>
                             <flux:heading size="sm">{{ __('session.nose_palate') }}</flux:heading>
-                            <flux:text class="text-zinc-500">{{ __('session.pick_up_to', ['max' => $tastingSession->max_taste_tags]) }}</flux:text>
+                            <flux:text class="text-zinc-800">{{ __('session.pick_up_to', ['max' => $tastingSession->max_taste_tags]) }}</flux:text>
                             @if(session('taste_tag_limit'))
                                 <div class="mt-2 text-sm text-rose-600">{{ session('taste_tag_limit') }}</div>
                             @endif
-                            <div class="mt-3 text-sm text-zinc-600">{{ __('session.pick_up_to', ['max' => $maxTags]) }} — <strong>{{ $noseSelectedCount }}</strong> {{ __('session.selected') }}</div>
+                            <div class="mt-3 text-sm text-zinc-800">{{ __('session.pick_up_to', ['max' => $maxTags]) }} — <strong>{{ $noseSelectedCount }}</strong> {{ __('session.selected') }}</div>
 
                             {{-- Category grid: from DB (tasteCategoryList); click to open modal with that category's tags --}}
-                            <p class="mt-4 text-sm font-medium text-zinc-600">{{ __('session.choose_category') }}</p>
+                            <p class="mt-4 text-sm font-medium text-zinc-800">{{ __('session.choose_category') }}</p>
                             <div class="mt-3 grid grid-cols-1 sm:grid-cols-3 gap-3">
                                 @foreach($this->tasteCategoryList as $cat)
                                     @php $isSelected = $selectedTasteCategory === $cat->slug; @endphp
@@ -619,7 +619,7 @@
                                             <button
                                                 type="button"
                                                 wire:click="$set('selectedTasteCategory', null)"
-                                                class="rounded-lg p-2 text-zinc-500 hover:bg-zinc-100 hover:text-zinc-800"
+                                                class="rounded-lg p-2 text-zinc-800 hover:bg-zinc-100 hover:text-zinc-900"
                                                 aria-label="{{ __('session.close') }}"
                                             >
                                                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
@@ -662,15 +662,15 @@
                         @endphp
                         <div>
                             <flux:heading size="sm">{{ __('session.taste_palate') }}</flux:heading>
-                            <flux:text class="text-zinc-500">{{ __('session.pick_up_to', ['max' => $tastingSession->max_taste_tags]) }}</flux:text>
+                            <flux:text class="text-zinc-800">{{ __('session.pick_up_to', ['max' => $tastingSession->max_taste_tags]) }}</flux:text>
                             @if(session('taste_tag_limit'))
                                 <div class="mt-2 text-sm text-rose-600">{{ session('taste_tag_limit') }}</div>
                             @endif
-                            <div class="mt-3 text-sm text-zinc-600">{{ __('session.pick_up_to', ['max' => $maxTags]) }} — <strong>{{ $selectedCount }}</strong> {{ __('session.selected') }}</div>
+                            <div class="mt-3 text-sm text-zinc-800">{{ __('session.pick_up_to', ['max' => $maxTags]) }} — <strong>{{ $selectedCount }}</strong> {{ __('session.selected') }}</div>
 
-                            @php $selectedTags = $this->selectedTasteTagModels; @endphp
+                                @php $selectedTags = $this->selectedTasteTagModels; @endphp
                             @if($selectedTags->isNotEmpty())
-                                <p class="mt-4 text-sm font-medium text-zinc-600">{{ __('Your chosen tags') }}</p>
+                                <p class="mt-4 text-sm font-medium text-zinc-800">{{ __('Your chosen tags') }}</p>
                                 <div class="mt-2 flex flex-wrap gap-2">
                                     @foreach($selectedTags as $tag)
                                         <span class="inline-flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium rounded-full bg-flux-primary/15 text-flux-primary border border-flux-primary/30">
@@ -684,7 +684,7 @@
                             @endif
 
                             {{-- Category grid: from DB (tasteCategoryList); click to open modal with that category's tags --}}
-                            <p class="mt-4 text-sm font-medium text-zinc-600">{{ __('session.choose_category') }}</p>
+                            <p class="mt-4 text-sm font-medium text-zinc-800">{{ __('session.choose_category') }}</p>
                             <div class="mt-3 grid grid-cols-1 sm:grid-cols-3 gap-3">
                                 @foreach($this->tasteCategoryList as $cat)
                                     @php $isSelected = $selectedTasteCategory === $cat->slug; @endphp
@@ -729,7 +729,7 @@
                                             <button
                                                 type="button"
                                                 wire:click="$set('selectedTasteCategory', null)"
-                                                class="rounded-lg p-2 text-zinc-500 hover:bg-zinc-100 hover:text-zinc-800"
+                                                class="rounded-lg p-2 text-zinc-800 hover:bg-zinc-100 hover:text-zinc-900"
                                                 aria-label="{{ __('Close') }}"
                                             >
                                                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
@@ -767,7 +767,7 @@
                     @else
                         <div>
                             <flux:heading size="sm">{{ __('session.rating') }}</flux:heading>
-                            <p class="mt-1 text-sm text-zinc-500">
+                            <p class="mt-1 text-sm text-zinc-800">
                                 {{ __('Geef een beoordeling op een schaal van 1 tot 10 en beschrijf kort hoe je deze whisky hebt ervaren.') }}
                             </p>
 
@@ -785,14 +785,14 @@
                                         >
                                             <span
                                                 class="transition-colors"
-                                                :class="(hover ?? current) >= {{ $j }} ? 'text-amber-400' : 'text-zinc-300'"
+                                                :class="(hover ?? current) >= {{ $j }} ? 'text-amber-400' : 'text-zinc-500'"
                                             >
                                                 ★
                                             </span>
                                         </button>
                                     @endfor
                                 </div>
-                                <span class="text-sm text-zinc-600" x-text="current ? (Number(current).toFixed(1) + ' / 10') : '—'"></span>
+                                <span class="text-sm text-zinc-800" x-text="current ? (Number(current).toFixed(1) + ' / 10') : '—'"></span>
                             </div>
 
                             <div class="mt-4">
@@ -825,7 +825,7 @@
                 <div class="flex flex-col items-center gap-3 sm:flex-row sm:items-baseline sm:justify-between">
                     <div class="text-center sm:text-left">
                         <flux:heading size="lg">{{ __('session.scoreboard') }}</flux:heading>
-                        <flux:text class="mt-1 text-zinc-500">
+                        <flux:text class="mt-1 text-zinc-800">
                             {{ __('session.this_round') }}: {{ $revealRound->team_total ?? 0 }} {{ __('session.points') }}
                             @if($avgRatingScoreboard !== null)
                                 · {{ __('session.avg_rating') }}: {{ number_format($avgRatingScoreboard, 1) }} / 10
@@ -895,10 +895,10 @@
                             <div>
                                 <span class="font-medium">{{ $drink->name }}</span>
                                 @if ($drink->year)
-                                    <span class="text-zinc-500">({{ $drink->year }})</span>
+                                    <span class="text-zinc-800">({{ $drink->year })</span>
                                 @endif
                                 @if ($drink->location)
-                                    <div class="text-xs text-zinc-500">{{ $drink->location }}</div>
+                                    <div class="text-xs text-zinc-800">{{ $drink->location }}</div>
                                 @endif
                             </div>
                         </div>
@@ -909,7 +909,7 @@
                         </div>
                     </li>
                 @empty
-                    <li class="rounded-lg border border-dashed border-zinc-300 p-4 text-center text-zinc-500">{{ __('session.no_drinks') }}</li>
+                    <li class="rounded-lg border border-dashed border-zinc-300 p-4 text-center text-zinc-800">{{ __('session.no_drinks') }}</li>
                 @endforelse
             </ul>
         </section>
@@ -1033,7 +1033,7 @@
                                     <div class="text-sm font-semibold text-zinc-800">
                                         Ronde {{ $roundIndex + 1 }}@if($drinkName) · {{ $drinkName }}@endif
                                     </div>
-                                    <div class="text-xs text-zinc-500">
+                                    <div class="text-xs text-zinc-800">
                                         {{ __('session.this_round') }}: {{ $roundData['team_total'] ?? 0 }} {{ __('session.points') }}
                                         @if(!is_null($avgRatingRound))
                                             · {{ __('session.avg_rating') }}: {{ number_format($avgRatingRound, 1) }} / 10
@@ -1082,7 +1082,7 @@
                                                     @endif
                                                 </div>
                                             @empty
-                                                <p class="text-xs text-zinc-500">{{ __('session.no_scoring_tags') }}</p>
+                                                <p class="text-xs text-zinc-800">{{ __('session.no_scoring_tags') }}</p>
                                             @endforelse
                                         </div>
                                     </div>
@@ -1124,7 +1124,7 @@
                                                     @endif
                                                 </div>
                                             @empty
-                                                <p class="text-xs text-zinc-500">{{ __('session.no_participant_scores') }}</p>
+                                                <p class="text-xs text-zinc-800">{{ __('session.no_participant_scores') }}</p>
                                             @endforelse
                                         </div>
                                     </div>
@@ -1177,7 +1177,7 @@
                                             @endif
                                         </div>
                                     @empty
-                                        <p class="text-xs text-zinc-500">{{ __('session.no_scoring_tags') }}</p>
+                                        <p class="text-xs text-zinc-800">{{ __('session.no_scoring_tags') }}</p>
                                     @endforelse
                                 </div>
                             </div>
