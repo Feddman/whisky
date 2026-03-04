@@ -274,7 +274,7 @@
     @endif
 
     {{-- Players + emojis + Slàinte (always first so button is visible) --}}
-    <section class="rounded-xl border border-zinc-200 bg-zinc-50 dark:border-zinc-700 dark:bg-zinc-900 p-4  ">
+    <section class="rounded-xl border border-zinc-200 bg-zinc-50 p-4  ">
         <div class="flex items-center justify-between gap-2">
             <flux:heading size="lg">{{ __('session.players') }}</flux:heading>
             <flux:button type="button" variant="ghost" size="xs" wire:click="openScoreBreakdown">
@@ -289,7 +289,7 @@
                         <img data-avatar-img="{{ $p->id }}" src="https://api.dicebear.com/8.x/croodles/svg?seed={{ urlencode($p->avatar_seed ?? $p->display_name) }}" alt="{{ $p->display_name }}" class="w-12 h-12 rounded-md" />
                     </button>
                     <div class="flex-1">
-                        <div class="font-medium"><span data-participant-name class="text-zinc-800 dark:text-neutral-500">{{ $p->display_name }}</span> @if($p->is_host)<span class="text-zinc-500 text-sm">({{ __('Host') }})</span>@endif</div>
+                        <div class="font-medium"><span data-participant-name class="text-zinc-800">{{ $p->display_name }}</span> @if($p->is_host)<span class="text-zinc-500 text-sm">({{ __('Host') }})</span>@endif</div>
                         <div class="text-xs text-zinc-500">{{ $p->total_score }} {{ __('pts') }}</div>
                     </div>
                     <div class="flex flex-col items-end gap-2">
@@ -357,12 +357,12 @@
         <!-- Reveal modal: smoke on top, then fades slowly to reveal drink underneath -->
         <div x-show="showRevealModal" x-cloak x-transition:enter="transition ease-out duration-300" x-transition:enter-start="opacity-0" x-transition:enter-end="opacity-100" class="fixed inset-0 z-50 flex items-start justify-center bg-black/80 overflow-y-auto py-10">
             <!-- Close button: always visible top-right -->
-            <button type="button" x-on:click="showRevealModal = false; smokeOverlayOpacity = 1; revealImageVisible = false; revealTextVisible = false; stopSmoke(); setTimeout(function(){ window.location.reload(); }, 150);" class="absolute top-4 right-4 z-[60] flex h-10 w-10 items-center justify-center rounded-full bg-white/90 dark:bg-zinc-800/90 text-zinc-700 dark:text-zinc-200 shadow-lg hover:bg-white dark:hover:bg-zinc-700 transition" aria-label="{{ __('Close') }}">
+            <button type="button" x-on:click="showRevealModal = false; smokeOverlayOpacity = 1; revealImageVisible = false; revealTextVisible = false; stopSmoke(); setTimeout(function(){ window.location.reload(); }, 150);" class="absolute top-4 right-4 z-[60] flex h-10 w-10 items-center justify-center rounded-full bg-white/90 text-zinc-700 shadow-lg hover:bg-white transition" aria-label="{{ __('Close') }}">
                 <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
             </button>
             <!-- Drink card: underneath the smoke (visible from start but covered) -->
             <div class="relative z-10 flex w-full items-center justify-center px-4">
-                <div class="reveal-modal-card my-8 max-w-3xl w-full rounded-2xl bg-white/98 dark:bg-zinc-900/98 p-8 md:p-10 text-center shadow-2xl ring-2 ring-amber-400/30 border border-amber-200/50 dark:border-amber-600/30">
+                <div class="reveal-modal-card my-8 max-w-3xl w-full rounded-2xl bg-white/98 p-8 md:p-10 text-center shadow-2xl ring-2 ring-amber-400/30 border border-amber-200/50">
                     @php
                         $revealRound = $this->getCurrentRoundProperty();
                         $revealDrink = $revealRound ? $revealRound->drink : null;
@@ -370,19 +370,19 @@
                             ? $revealRound->submissions()->whereNotNull('rating_score')->avg('rating_score')
                             : null;
                     @endphp
-                    <p class="text-sm font-semibold uppercase tracking-widest text-amber-600 dark:text-amber-400 mb-4">{{ __('session.reveal') }}</p>
+                    <p class="text-sm font-semibold uppercase tracking-widest text-amber-600 mb-4">{{ __('session.reveal') }}</p>
                     @if ($revealDrink && $revealDrink->image)
                         <div x-show="revealImageVisible" x-cloak x-transition:enter="transition ease-out duration-[1200ms]" x-transition:enter-start="opacity-0 scale-95" x-transition:enter-end="opacity-100 scale-100" class="overflow-hidden">
                             <img src="{{ $revealDrink->imageUrl() }}" alt="{{ $revealDrink->name }}" class="mx-auto max-h-80 rounded-xl object-contain shadow-lg" />
                         </div>
                     @endif
                     <div x-show="revealTextVisible" x-cloak x-transition:enter="transition ease-out duration-[1000ms]" x-transition:enter-start="opacity-0 translate-y-4" x-transition:enter-end="opacity-100 translate-y-0">
-                        <h2 class="reveal-drink-name mt-6 text-3xl md:text-4xl font-bold text-zinc-900 dark:text-white">{{ $revealDrink ? $revealDrink->name : '' }}</h2>
+                        <h2 class="reveal-drink-name mt-6 text-3xl md:text-4xl font-bold text-zinc-900">{{ $revealDrink ? $revealDrink->name : '' }}</h2>
                         @if ($revealDrink && ($revealDrink->year || $revealDrink->location))
-                            <p class="reveal-drink-meta mt-1 text-lg text-zinc-500 dark:text-zinc-400">{{ $revealDrink->year }} {{ $revealDrink->location }}</p>
+                            <p class="reveal-drink-meta mt-1 text-lg text-zinc-500">{{ $revealDrink->year }} {{ $revealDrink->location }}</p>
                         @endif
                         @if ($revealDrink && $revealDrink->description)
-                            <p class="reveal-drink-meta mt-3 max-w-xl mx-auto text-zinc-600 dark:text-zinc-300">{{ $revealDrink->description }}</p>
+                            <p class="reveal-drink-meta mt-3 max-w-xl mx-auto text-zinc-600">{{ $revealDrink->description }}</p>
                         @endif
                     @if($avgRating !== null)
                         <div class="mt-4 flex items-center justify-center gap-3">
@@ -391,14 +391,14 @@
                                     <span class="{{ $avgRating >= $j ? 'text-amber-400' : 'text-zinc-300' }}">★</span>
                                 @endfor
                             </div>
-                            <p class="text-sm text-zinc-700 dark:text-zinc-200">
+                            <p class="text-sm text-zinc-700">
                                 {{ number_format($avgRating, 1) }} / 10
                             </p>
                         </div>
                     @endif
                     </div>
                     <div class="mt-8" x-show="revealTextVisible" x-cloak x-transition:enter="transition ease-out duration-500" x-transition:enter-start="opacity-0" x-transition:enter-end="opacity-100">
-                        <button type="button" x-on:click="showRevealModal = false; smokeOverlayOpacity = 1; revealImageVisible = false; revealTextVisible = false; stopSmoke(); setTimeout(function(){ window.location.reload(); }, 150);" class="px-6 py-2.5 rounded-lg bg-zinc-800 dark:bg-zinc-700 text-white font-medium hover:bg-zinc-700 dark:hover:bg-zinc-600 transition">{{ __('Close') }}</button>
+                        <button type="button" x-on:click="showRevealModal = false; smokeOverlayOpacity = 1; revealImageVisible = false; revealTextVisible = false; stopSmoke(); setTimeout(function(){ window.location.reload(); }, 150);" class="px-6 py-2.5 rounded-lg bg-zinc-800 text-white font-medium hover:bg-zinc-700 transition">{{ __('Close') }}</button>
                     </div>
                 </div>
             </div>
@@ -449,7 +449,7 @@
 
     {{-- All submitted: host starts reveal, others wait --}}
     @if ($tastingSession->status === 'awaiting_reveal')
-        <section class="rounded-lg border border-zinc-200 bg-zinc-50 dark:border-zinc-700 dark:bg-zinc-900 p-6">
+        <section class="rounded-lg border border-zinc-200 bg-zinc-50 p-6">
             @can('update', $tastingSession)
                 <flux:heading size="lg">{{ __('session.everyone_submitted') }}</flux:heading>
                 <flux:text class="mt-2">{{ __('session.start_reveal_ready') }}</flux:text>
@@ -843,7 +843,7 @@
                         @php
                             $roundPoints = ($revealRound->round_score ?? [])[$p->id] ?? 0;
                         @endphp
-                        <li class="flex items-center justify-between rounded-lg bg-zinc-100 px-4 py-2 dark:bg-zinc-800">
+                        <li class="flex items-center justify-between rounded-lg bg-zinc-100 px-4 py-2">
                             <span>{{ $p->display_name }}</span>
                             <span class="font-medium">{{ $roundPoints }} {{ __('session.pts') }} ({{ __('session.total') }}: {{ $p->total_score }})</span>
                         </li>
@@ -999,14 +999,14 @@
             role="dialog"
             aria-modal="true"
         >
-            <div class="w-full max-w-5xl rounded-2xl border border-zinc-200 bg-white shadow-2xl dark:border-zinc-700 dark:bg-zinc-900">
-                <div class="flex items-center justify-between gap-3 border-b border-zinc-200 px-4 py-3 dark:border-zinc-700">
+            <div class="w-full max-w-5xl rounded-2xl border border-zinc-200 bg-white shadow-2xl">
+                <div class="flex items-center justify-between gap-3 border-b border-zinc-200 px-4 py-3">
                     <div>
-                        <p class="text-xs font-semibold uppercase tracking-widest text-amber-600 dark:text-amber-400">
+                        <p class="text-xs font-semibold uppercase tracking-widest text-amber-600">
                             {{ __('session.score_breakdown_title') }}
                         </p>
                         @if ($revealRound ?? null)
-                            <p class="text-sm text-zinc-600 dark:text-zinc-300">
+                            <p class="text-sm text-zinc-600">
                                 {{ $revealRound->drink?->name }} · {{ __('session.this_round') }}: {{ $revealRound->team_total ?? 0 }} {{ __('session.points') }}
                             </p>
                         @endif
@@ -1014,7 +1014,7 @@
                     <button
                         type="button"
                         wire:click="closeScoreBreakdown"
-                        class="inline-flex h-9 w-9 items-center justify-center rounded-full bg-zinc-100 text-zinc-700 hover:bg-zinc-200 dark:bg-zinc-800 dark:text-zinc-200 dark:hover:bg-zinc-700"
+                        class="inline-flex h-9 w-9 items-center justify-center rounded-full bg-zinc-100 text-zinc-700 hover:bg-zinc-200"
                         aria-label="{{ __('Close') }}"
                     >
                         <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
@@ -1029,11 +1029,11 @@
                                 $avgRatingRound = $roundData['avg_rating'] ?? null;
                             @endphp
                             <div class="mb-6 last:mb-0">
-                                <div class="mb-3 flex flex-wrap items-baseline justify-between gap-2 border-b border-zinc-200 pb-2 dark:border-zinc-700">
-                                    <div class="text-sm font-semibold text-zinc-800 dark:text-zinc-100">
+                                <div class="mb-3 flex flex-wrap items-baseline justify-between gap-2 border-b border-zinc-200 pb-2">
+                                    <div class="text-sm font-semibold text-zinc-800">
                                         Ronde {{ $roundIndex + 1 }}@if($drinkName) · {{ $drinkName }}@endif
                                     </div>
-                                    <div class="text-xs text-zinc-500 dark:text-zinc-400">
+                                    <div class="text-xs text-zinc-500">
                                         {{ __('session.this_round') }}: {{ $roundData['team_total'] ?? 0 }} {{ __('session.points') }}
                                         @if(!is_null($avgRatingRound))
                                             · {{ __('session.avg_rating') }}: {{ number_format($avgRatingRound, 1) }} / 10
@@ -1043,7 +1043,7 @@
                                 <div class="grid gap-6 md:grid-cols-2">
                                     {{-- Tags column --}}
                                     <div>
-                                        <h3 class="text-sm font-semibold text-zinc-800 dark:text-zinc-100">
+                                        <h3 class="text-sm font-semibold text-zinc-800">
                                             {{ __('session.tags') }}
                                         </h3>
                                         <div class="mt-3 space-y-2">
@@ -1053,17 +1053,17 @@
                                                 });
                                             @endphp
                                             @forelse ($scoringTags as $tag)
-                                                <div class="rounded-lg border border-zinc-200 bg-zinc-50 px-3 py-2.5 text-sm dark:border-zinc-700 dark:bg-zinc-800">
+                                                <div class="rounded-lg border border-zinc-200 bg-zinc-50 px-3 py-2.5 text-sm">
                                                     <div class="flex items-center justify-between gap-2">
                                                         <div class="flex items-center gap-2">
                                                             @if(!empty($tag['emoji']))
                                                                 <span class="text-lg">{{ $tag['emoji'] }}</span>
                                                             @endif
-                                                            <span class="font-medium text-zinc-800 dark:text-zinc-100">
+                                                            <span class="font-medium text-zinc-800">
                                                                 {{ $tag['name'] }}
                                                             </span>
                                                         </div>
-                                                        <div class="text-right text-xs text-zinc-600 dark:text-zinc-300">
+                                                        <div class="text-right text-xs text-zinc-600">
                                                             <div>{{ trans('session.tag_label_players', ['count' => $tag['count']]) }}</div>
                                                             <div>{{ trans('session.tag_label_points', ['points' => $tag['team_points']]) }}</div>
                                                         </div>
@@ -1072,9 +1072,9 @@
                                                         <div class="mt-2 flex flex-wrap gap-1">
                                                             @foreach($tag['participants'] as $p)
                                                                 @if($p['points'] > 0)
-                                                                    <span class="inline-flex items-center gap-1 rounded-full bg-white px-2 py-0.5 text-xs text-zinc-700 shadow-sm dark:bg-zinc-900 dark:text-zinc-200">
+                                                                    <span class="inline-flex items-center gap-1 rounded-full bg-white px-2 py-0.5 text-xs text-zinc-700 shadow-sm">
                                                                         <span>{{ $p['name'] }}</span>
-                                                                        <span class="text-emerald-600 dark:text-emerald-400 font-semibold">+{{ $p['points'] }}</span>
+                                                                        <span class="text-emerald-600 font-semibold">+{{ $p['points'] }}</span>
                                                                     </span>
                                                                 @endif
                                                             @endforeach
@@ -1082,14 +1082,14 @@
                                                     @endif
                                                 </div>
                                             @empty
-                                                <p class="text-xs text-zinc-500 dark:text-zinc-400">{{ __('session.no_scoring_tags') }}</p>
+                                                <p class="text-xs text-zinc-500">{{ __('session.no_scoring_tags') }}</p>
                                             @endforelse
                                         </div>
                                     </div>
 
                                     {{-- Participants column --}}
                                     <div>
-                                        <h3 class="text-sm font-semibold text-zinc-800 dark:text-zinc-100">
+                                        <h3 class="text-sm font-semibold text-zinc-800">
                                             {{ __('session.participants') }}
                                         </h3>
                                         <div class="mt-3 space-y-2">
@@ -1099,10 +1099,10 @@
                                                 });
                                             @endphp
                                             @forelse ($scoringParticipants as $p)
-                                                <div class="rounded-lg border border-zinc-200 bg-zinc-50 px-3 py-2.5 text-sm dark:border-zinc-700 dark:bg-zinc-800">
+                                                <div class="rounded-lg border border-zinc-200 bg-zinc-50 px-3 py-2.5 text-sm">
                                                     <div class="flex items-center justify-between gap-2">
-                                                        <span class="font-medium text-zinc-800 dark:text-zinc-100">{{ $p['name'] }}</span>
-                                                        <span class="text-xs font-semibold text-emerald-700 dark:text-emerald-400">
+                                                        <span class="font-medium text-zinc-800">{{ $p['name'] }}</span>
+                                                        <span class="text-xs font-semibold text-emerald-700">
                                                             +{{ $p['total'] }} {{ __('session.points') }}
                                                         </span>
                                                     </div>
@@ -1114,9 +1114,9 @@
                                                                         $tag = $details['tags'][$slug] ?? null;
                                                                         $label = $tag['name'] ?? $slug;
                                                                     @endphp
-                                                                    <span class="inline-flex items-center gap-1 rounded-full bg-white px-2 py-0.5 text-xs text-zinc-700 shadow-sm dark:bg-zinc-900 dark:text-zinc-200">
+                                                                    <span class="inline-flex items-center gap-1 rounded-full bg-white px-2 py-0.5 text-xs text-zinc-700 shadow-sm">
                                                                         <span>{{ $label }}</span>
-                                                                        <span class="text-emerald-600 dark:text-emerald-400 font-semibold">+{{ $points }}</span>
+                                                                        <span class="text-emerald-600 font-semibold">+{{ $points }}</span>
                                                                     </span>
                                                                 @endif
                                                             @endforeach
@@ -1124,7 +1124,7 @@
                                                     @endif
                                                 </div>
                                             @empty
-                                                <p class="text-xs text-zinc-500 dark:text-zinc-400">{{ __('session.no_participant_scores') }}</p>
+                                                <p class="text-xs text-zinc-500">{{ __('session.no_participant_scores') }}</p>
                                             @endforelse
                                         </div>
                                     </div>
@@ -1138,7 +1138,7 @@
                         <div class="grid gap-6 md:grid-cols-2">
                             {{-- Tags column --}}
                             <div>
-                                <h3 class="text-sm font-semibold text-zinc-800 dark:text-zinc-100">
+                                <h3 class="text-sm font-semibold text-zinc-800">
                                     {{ __('session.tags') }}
                                 </h3>
                                 <div class="mt-3 space-y-2">
@@ -1148,17 +1148,17 @@
                                         });
                                     @endphp
                                     @forelse ($scoringTags as $tag)
-                                        <div class="rounded-lg border border-zinc-200 bg-zinc-50 px-3 py-2.5 text-sm dark:border-zinc-700 dark:bg-zinc-800">
+                                        <div class="rounded-lg border border-zinc-200 bg-zinc-50 px-3 py-2.5 text-sm">
                                             <div class="flex items-center justify-between gap-2">
                                                 <div class="flex items-center gap-2">
                                                     @if(!empty($tag['emoji']))
                                                         <span class="text-lg">{{ $tag['emoji'] }}</span>
                                                     @endif
-                                                    <span class="font-medium text-zinc-800 dark:text-zinc-100">
+                                                    <span class="font-medium text-zinc-800">
                                                         {{ $tag['name'] }}
                                                     </span>
                                                 </div>
-                                                <div class="text-right text-xs text-zinc-600 dark:text-zinc-300">
+                                                <div class="text-right text-xs text-zinc-600">
                                                     <div>{{ trans('session.tag_label_players', ['count' => $tag['count']]) }}</div>
                                                     <div>{{ trans('session.tag_label_points', ['points' => $tag['team_points']]) }}</div>
                                                 </div>
@@ -1167,9 +1167,9 @@
                                                 <div class="mt-2 flex flex-wrap gap-1">
                                                     @foreach($tag['participants'] as $p)
                                                         @if($p['points'] > 0)
-                                                            <span class="inline-flex items-center gap-1 rounded-full bg-white px-2 py-0.5 text-xs text-zinc-700 shadow-sm dark:bg-zinc-900 dark:text-zinc-200">
+                                                            <span class="inline-flex items-center gap-1 rounded-full bg-white px-2 py-0.5 text-xs text-zinc-700 shadow-sm">
                                                                 <span>{{ $p['name'] }}</span>
-                                                                <span class="text-emerald-600 dark:text-emerald-400 font-semibold">+{{ $p['points'] }}</span>
+                                                                <span class="text-emerald-600 font-semibold">+{{ $p['points'] }}</span>
                                                             </span>
                                                         @endif
                                                     @endforeach
@@ -1177,14 +1177,14 @@
                                             @endif
                                         </div>
                                     @empty
-                                        <p class="text-xs text-zinc-500 dark:text-zinc-400">{{ __('session.no_scoring_tags') }}</p>
+                                        <p class="text-xs text-zinc-500">{{ __('session.no_scoring_tags') }}</p>
                                     @endforelse
                                 </div>
                             </div>
 
                             {{-- Participants column --}}
                             <div>
-                                <h3 class="text-sm font-semibold text-zinc-800 dark:text-zinc-100">
+                                <h3 class="text-sm font-semibold text-zinc-800">
                                     {{ __('session.participants') }}
                                 </h3>
                                 <div class="mt-3 space-y-2">
@@ -1194,10 +1194,10 @@
                                         });
                                     @endphp
                                     @forelse ($scoringParticipants as $p)
-                                        <div class="rounded-lg border border-zinc-200 bg-zinc-50 px-3 py-2.5 text-sm dark:border-zinc-700 dark:bg-zinc-800">
+                                        <div class="rounded-lg border border-zinc-200 bg-zinc-50 px-3 py-2.5 text-sm">
                                             <div class="flex items-center justify-between gap-2">
-                                                <span class="font-medium text-zinc-800 dark:text-zinc-100">{{ $p['name'] }}</span>
-                                                <span class="text-xs font-semibold text-emerald-700 dark:text-emerald-400">
+                                                <span class="font-medium text-zinc-800">{{ $p['name'] }}</span>
+                                                <span class="text-xs font-semibold text-emerald-700">
                                                     +{{ $p['total'] }} {{ __('session.points') }}
                                                 </span>
                                             </div>
@@ -1209,9 +1209,9 @@
                                                                 $tag = $details['tags'][$slug] ?? null;
                                                                 $label = $tag['name'] ?? $slug;
                                                             @endphp
-                                                            <span class="inline-flex items-center gap-1 rounded-full bg-white px-2 py-0.5 text-xs text-zinc-700 shadow-sm dark:bg-zinc-900 dark:text-zinc-200">
+                                                            <span class="inline-flex items-center gap-1 rounded-full bg-white px-2 py-0.5 text-xs text-zinc-700 shadow-sm">
                                                                 <span>{{ $label }}</span>
-                                                                <span class="text-emerald-600 dark:text-emerald-400 font-semibold">+{{ $points }}</span>
+                                                                <span class="text-emerald-600 font-semibold">+{{ $points }}</span>
                                                             </span>
                                                         @endif
                                                     @endforeach
@@ -1219,14 +1219,14 @@
                                             @endif
                                         </div>
                                     @empty
-                                        <p class="text-xs text-zinc-500 dark:text-zinc-400">{{ __('session.no_participant_scores') }}</p>
+                                        <p class="text-xs text-zinc-500">{{ __('session.no_participant_scores') }}</p>
                                     @endforelse
                                 </div>
                             </div>
                         </div>
                     @endif
                 </div>
-                <div class="flex items-center justify-end gap-2 border-t border-zinc-200 px-4 py-3 dark:border-zinc-700">
+                <div class="flex items-center justify-end gap-2 border-t border-zinc-200 px-4 py-3">
                     <flux:button type="button" variant="ghost" size="sm" wire:click="closeScoreBreakdown">
                         {{ __('session.close') }}
                     </flux:button>

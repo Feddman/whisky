@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html lang="{{ str_replace('_', '-', app()->getLocale()) }}" class="dark">
+<html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
     <head>
         @include('partials.head')
     </head>
-    <body class="min-h-screen bg-white dark:bg-zinc-800">
+    <body class="min-h-screen bg-white">
         @php
             $sessionTotalPoints = null;
             if (isset($tastingSessionId)) {
@@ -12,14 +12,14 @@
             }
         @endphp
 
-        <header class="sticky top-0 z-10 flex items-center justify-between border-b border-zinc-200 bg-zinc-50 px-4 py-3 dark:border-zinc-700 dark:bg-zinc-900">
+        <header class="sticky top-0 z-10 flex items-center justify-between border-b border-zinc-200 bg-zinc-50 px-4 py-3">
             <a href="{{ route('home') }}" wire:navigate class="flex items-center gap-3">
-                {{-- <x-app-logo-icon class="w-20 text-black dark:text-white" /> --}}
+                {{-- <x-app-logo-icon class="w-20 text-black" /> --}}
                 @if (isset($sessionName))
-                    <span class="text-lg font-semibold text-zinc-800 dark:text-zinc-200">{{ $sessionName }}</span>
+                    <span class="text-lg font-semibold text-zinc-800">{{ $sessionName }}</span>
                 @endif
                 @if (! is_null($sessionTotalPoints))
-                    <span class="inline-flex items-center gap-1 rounded-full bg-amber-100 px-3 py-1 text-xs font-semibold text-amber-800 dark:bg-amber-900/40 dark:text-amber-300">
+                    <span class="inline-flex items-center gap-1 rounded-full bg-amber-100 px-3 py-1 text-xs font-semibold text-amber-800">
                         {{ __('session.team_total_label') }} {{ $sessionTotalPoints }} {{ __('session.points') }}
                     </span>
                 @endif
@@ -30,12 +30,12 @@
                 @endif
                 @if (isset($tastingSessionId))
                     <div class="relative inline-block">
-                        <button id="shareToggle" type="button" class="text-sm inline-flex items-center gap-2 px-3 py-1 rounded-md border border-zinc-200 bg-white dark:bg-zinc-900">Share</button>
-                        <div id="shareMenu" class="hidden absolute right-0 mt-2 w-56 rounded-md bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-700 shadow-lg p-3 z-50">
+                        <button id="shareToggle" type="button" class="text-sm inline-flex items-center gap-2 px-3 py-1 rounded-md border border-zinc-200 bg-white">Share</button>
+                        <div id="shareMenu" class="hidden absolute right-0 mt-2 w-56 rounded-md bg-white border border-zinc-200 shadow-lg p-3 z-50">
                             <div class="text-sm mb-2 font-medium">{{ __('session.share') }}</div>
                             <div class="flex flex-col gap-2">
-                                <button class="text-left text-sm px-2 py-1 rounded hover:bg-zinc-100 dark:hover:bg-zinc-800" onclick="navigator.clipboard.writeText('{{ $joinUrl ?? '' }}')">{{ __('session.copy') }}</button>
-                                <a class="text-left text-sm px-2 py-1 rounded hover:bg-zinc-100 dark:hover:bg-zinc-800" target="_blank" rel="noopener" href="https://api.whatsapp.com/send?text={{ urlencode(__('session.join_link_message', ['url' => $joinUrl ?? ''])) }}">{{ __('session.share_whatsapp') }}</a>
+                                <button class="text-left text-sm px-2 py-1 rounded hover:bg-zinc-100" onclick="navigator.clipboard.writeText('{{ $joinUrl ?? '' }}')">{{ __('session.copy') }}</button>
+                                <a class="text-left text-sm px-2 py-1 rounded hover:bg-zinc-100" target="_blank" rel="noopener" href="https://api.whatsapp.com/send?text={{ urlencode(__('session.join_link_message', ['url' => $joinUrl ?? ''])) }}">{{ __('session.share_whatsapp') }}</a>
                                 <div class="border-t pt-2 mt-2 text-xs text-zinc-500">{{ __('session.join_code') }}: <strong>{{ $joinCode ?? '' }}</strong></div>
                             </div>
                         </div>
