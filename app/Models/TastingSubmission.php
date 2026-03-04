@@ -12,12 +12,17 @@ class TastingSubmission extends Model
         'session_participant_id',
         'color',
         'taste_tags',
+        'nose_tags',
+        'rating_score',
+        'rating_note',
     ];
 
     protected function casts(): array
     {
         return [
             'taste_tags' => 'array',
+            'nose_tags' => 'array',
+            'rating_score' => 'float',
         ];
     }
 

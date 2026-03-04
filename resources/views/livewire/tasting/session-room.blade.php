@@ -26,7 +26,7 @@
         smokeResizeHandler: null,
         init() {
             var self = this;
-            ['tasting-players-updated','round-started','submission-received','reveal-started','everyone-submitted'].forEach(function(e) {
+            ['tasting-players-updated','round-started','submission-received','reveal-started','reveal-countdown-finished','everyone-submitted'].forEach(function(e) {
                 window.addEventListener(e, function() { $wire.$refresh(); });
             });
 
@@ -275,7 +275,12 @@
 
     {{-- Players + emojis + Slàinte (always first so button is visible) --}}
     <section class="rounded-xl border border-zinc-200 bg-zinc-50 dark:border-zinc-700 dark:bg-zinc-900 p-4  ">
-        <flux:heading size="lg">{{ __('session.players') }}</flux:heading>
+        <div class="flex items-center justify-between gap-2">
+            <flux:heading size="lg">{{ __('session.players') }}</flux:heading>
+            <flux:button type="button" variant="ghost" size="xs" wire:click="openScoreBreakdown">
+                {{ __('session.view_tag_breakdown') }}
+            </flux:button>
+        </div>
         <div class="mt-2 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
             @foreach ($tastingSession->activeParticipants as $p)
                 <div data-participant-id="{{ $p->id }}" x-data="{ emojiVisible:false }" x-init="$watch(() => participantEmojis[{{ $p->id }}], (v) => { if (v) { emojiVisible = true; setTimeout(() => { emojiVisible = false; }, 2000); } })" class="relative flex items-center gap-3 rounded-lg border border-zinc-200 bg-white p-3">
@@ -350,17 +355,20 @@
         </div>
 
         <!-- Reveal modal: smoke on top, then fades slowly to reveal drink underneath -->
-        <div x-show="showRevealModal" x-cloak x-transition:enter="transition ease-out duration-300" x-transition:enter-start="opacity-0" x-transition:enter-end="opacity-100" class="fixed inset-0 z-50 flex items-center justify-center bg-black/80">
+        <div x-show="showRevealModal" x-cloak x-transition:enter="transition ease-out duration-300" x-transition:enter-start="opacity-0" x-transition:enter-end="opacity-100" class="fixed inset-0 z-50 flex items-start justify-center bg-black/80 overflow-y-auto py-10">
             <!-- Close button: always visible top-right -->
-            <button type="button" x-on:click="showRevealModal = false; smokeOverlayOpacity = 1; revealImageVisible = false; revealTextVisible = false; stopSmoke();" class="absolute top-4 right-4 z-[60] flex h-10 w-10 items-center justify-center rounded-full bg-white/90 dark:bg-zinc-800/90 text-zinc-700 dark:text-zinc-200 shadow-lg hover:bg-white dark:hover:bg-zinc-700 transition" aria-label="{{ __('Close') }}">
+            <button type="button" x-on:click="showRevealModal = false; smokeOverlayOpacity = 1; revealImageVisible = false; revealTextVisible = false; stopSmoke(); setTimeout(function(){ window.location.reload(); }, 150);" class="absolute top-4 right-4 z-[60] flex h-10 w-10 items-center justify-center rounded-full bg-white/90 dark:bg-zinc-800/90 text-zinc-700 dark:text-zinc-200 shadow-lg hover:bg-white dark:hover:bg-zinc-700 transition" aria-label="{{ __('Close') }}">
                 <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
             </button>
             <!-- Drink card: underneath the smoke (visible from start but covered) -->
-            <div class="absolute inset-0 z-10 flex items-center justify-center px-4 py-12 pt-16">
-                <div class="reveal-modal-card max-w-3xl w-full rounded-2xl bg-white/98 dark:bg-zinc-900/98 p-8 md:p-10 text-center shadow-2xl ring-2 ring-amber-400/30 border border-amber-200/50 dark:border-amber-600/30">
+            <div class="relative z-10 flex w-full items-center justify-center px-4">
+                <div class="reveal-modal-card my-8 max-w-3xl w-full rounded-2xl bg-white/98 dark:bg-zinc-900/98 p-8 md:p-10 text-center shadow-2xl ring-2 ring-amber-400/30 border border-amber-200/50 dark:border-amber-600/30">
                     @php
                         $revealRound = $this->getCurrentRoundProperty();
                         $revealDrink = $revealRound ? $revealRound->drink : null;
+                        $avgRating = $revealRound
+                            ? $revealRound->submissions()->whereNotNull('rating_score')->avg('rating_score')
+                            : null;
                     @endphp
                     <p class="text-sm font-semibold uppercase tracking-widest text-amber-600 dark:text-amber-400 mb-4">{{ __('session.reveal') }}</p>
                     @if ($revealDrink && $revealDrink->image)
@@ -376,9 +384,21 @@
                         @if ($revealDrink && $revealDrink->description)
                             <p class="reveal-drink-meta mt-3 max-w-xl mx-auto text-zinc-600 dark:text-zinc-300">{{ $revealDrink->description }}</p>
                         @endif
+                    @if($avgRating !== null)
+                        <div class="mt-4 flex items-center justify-center gap-3">
+                            <div class="flex items-center gap-0.5 text-xl">
+                                @for($j = 1; $j <= 10; $j++)
+                                    <span class="{{ $avgRating >= $j ? 'text-amber-400' : 'text-zinc-300' }}">★</span>
+                                @endfor
+                            </div>
+                            <p class="text-sm text-zinc-700 dark:text-zinc-200">
+                                {{ number_format($avgRating, 1) }} / 10
+                            </p>
+                        </div>
+                    @endif
                     </div>
                     <div class="mt-8" x-show="revealTextVisible" x-cloak x-transition:enter="transition ease-out duration-500" x-transition:enter-start="opacity-0" x-transition:enter-end="opacity-100">
-                        <button type="button" x-on:click="showRevealModal = false; smokeOverlayOpacity = 1; revealImageVisible = false; revealTextVisible = false; stopSmoke();" class="px-6 py-2.5 rounded-lg bg-zinc-800 dark:bg-zinc-700 text-white font-medium hover:bg-zinc-700 dark:hover:bg-zinc-600 transition">{{ __('Close') }}</button>
+                        <button type="button" x-on:click="showRevealModal = false; smokeOverlayOpacity = 1; revealImageVisible = false; revealTextVisible = false; stopSmoke(); setTimeout(function(){ window.location.reload(); }, 150);" class="px-6 py-2.5 rounded-lg bg-zinc-800 dark:bg-zinc-700 text-white font-medium hover:bg-zinc-700 dark:hover:bg-zinc-600 transition">{{ __('Close') }}</button>
                     </div>
                 </div>
             </div>
@@ -443,8 +463,8 @@
         </section>
     @endif
 
-    {{-- Round in progress: tasting form or waiting for others --}}
-    @if ($tastingSession->status === 'in_progress' && $this->getCurrentRoundProperty())
+    {{-- Round in progress or awaiting reveal: tasting form or waiting state --}}
+    @if (in_array($tastingSession->status, ['in_progress', 'awaiting_reveal'], true) && $this->getCurrentRoundProperty())
         @php
             $currentRound = $this->getCurrentRoundProperty();
             $currentParticipant = $this->getCurrentParticipantProperty();
@@ -452,15 +472,53 @@
             $submissionsCount = $currentRound->submissions()->count();
             $participantsCount = $tastingSession->activeParticipants()->count();
         @endphp
-        @if ($hasSubmitted)
+        @if ($hasSubmitted && ! $this->editingSubmission)
             <section class="rounded-lg border border-zinc-200 bg-zinc-50 p-6">
-                <flux:heading size="lg">{{ __('Waiting for others') }}</flux:heading>
-                <flux:text>{{ $submissionsCount }} / {{ $participantsCount }} {{ __('have submitted') }}</flux:text>
+                @if ($tastingSession->status === 'in_progress')
+                    <flux:heading size="lg">{{ __('Waiting for others') }}</flux:heading>
+                    <flux:text>{{ $submissionsCount }} / {{ $participantsCount }} {{ __('have submitted') }}</flux:text>
+                @else
+                    <flux:heading size="lg">{{ __('session.everyone_submitted') }}</flux:heading>
+                    <flux:text class="mt-1 text-sm text-zinc-600">
+                        {{ __('session.start_reveal_ready') }}
+                    </flux:text>
+                @endif
+                <div class="mt-4">
+                    <button
+                        type="button"
+                        wire:click="reopenTastingForm"
+                        class="inline-flex items-center justify-center rounded-lg border border-zinc-300 bg-white px-4 py-2 text-sm font-medium text-zinc-700 shadow-sm hover:bg-zinc-50"
+                    >
+                        {{ __('session.reopen_form') }}
+                    </button>
+                </div>
             </section>
         @elseif ($currentParticipant)
             <section class="rounded-lg border border-zinc-200 p-6">
                 <flux:heading size="lg">{{ __('session.tasting_notes') }}</flux:heading>
                 <form wire:submit="submitTasting" class="mt-4 space-y-6">
+                    {{-- Wizard steps header --}}
+                    <div class="flex flex-wrap items-center gap-2 text-xs font-medium text-zinc-600">
+                        @php
+                            $steps = [
+                                1 => __('session.color_optional'),
+                                2 => __('session.nose_palate'),
+                                3 => __('session.taste_palate'),
+                                4 => __('session.rating'),
+                            ];
+                        @endphp
+                        @foreach($steps as $stepNumber => $label)
+                            @php $active = $formStep === $stepNumber; @endphp
+                            <button
+                                type="button"
+                                wire:click="$set('formStep', {{ $stepNumber }})"
+                                class="inline-flex items-center gap-1 rounded-full border px-3 py-1 transition {{ $active ? 'border-flux-primary bg-flux-primary/10 text-flux-primary' : 'border-zinc-200 bg-white text-zinc-600 hover:border-zinc-300' }}"
+                            >
+                                <span class="inline-flex h-4 w-4 items-center justify-center rounded-full bg-zinc-200 text-[10px] font-semibold text-zinc-800">{{ $stepNumber }}</span>
+                                <span>{{ $label }}</span>
+                            </button>
+                        @endforeach
+                    </div>
                     @if ($formStep === 1)
                         <div>
                             @php
@@ -501,7 +559,102 @@
 
                             <flux:button type="button" variant="primary" class="mt-4" wire:click="$set('formStep', 2)">{{ __('session.next') }}</flux:button>
                         </div>
-                    @else
+                    @elseif ($formStep === 2)
+                        @php
+                            $categories = $this->tasteTagsGrouped;
+                            $noseSelectedCount = count($tasting_nose_tags ?? []);
+                            $maxTags = $tastingSession->max_taste_tags;
+                        @endphp
+                        <div>
+                            <flux:heading size="sm">{{ __('session.nose_palate') }}</flux:heading>
+                            <flux:text class="text-zinc-500">{{ __('session.pick_up_to', ['max' => $tastingSession->max_taste_tags]) }}</flux:text>
+                            @if(session('taste_tag_limit'))
+                                <div class="mt-2 text-sm text-rose-600">{{ session('taste_tag_limit') }}</div>
+                            @endif
+                            <div class="mt-3 text-sm text-zinc-600">{{ __('session.pick_up_to', ['max' => $maxTags]) }} — <strong>{{ $noseSelectedCount }}</strong> {{ __('session.selected') }}</div>
+
+                            {{-- Category grid: from DB (tasteCategoryList); click to open modal with that category's tags --}}
+                            <p class="mt-4 text-sm font-medium text-zinc-600">{{ __('session.choose_category') }}</p>
+                            <div class="mt-3 grid grid-cols-1 sm:grid-cols-3 gap-3">
+                                @foreach($this->tasteCategoryList as $cat)
+                                    @php $isSelected = $selectedTasteCategory === $cat->slug; @endphp
+                                    <button
+                                        type="button"
+                                        wire:click="$set('selectedTasteCategory', '{{ $cat->slug }}')"
+                                        class="flex flex-col items-center justify-center gap-2 rounded-xl border-2 p-6 text-center transition hover:border-flux-primary hover:shadow-md focus:outline-none focus:ring-2 focus:ring-flux-primary/50 {{ $isSelected ? 'border-flux-primary bg-flux-primary/5 ring-2 ring-flux-primary/30' : 'border-zinc-200 bg-white' }}"
+                                    >
+                                        @if($cat->emoji)
+                                            <span class="text-4xl leading-none">{{ $cat->emoji }}</span>
+                                        @endif
+                                        <span class="text-base font-semibold text-zinc-800">{{ $cat->name }}</span>
+                                    </button>
+                                @endforeach
+                            </div>
+
+                            {{-- Modal: nose tags for the selected category --}}
+                            @if($selectedTasteCategory !== null)
+                                @php
+                                    $tags = $categories->get($selectedTasteCategory, collect());
+                                    $modalCat = $this->tasteCategoryList->firstWhere('slug', $selectedTasteCategory);
+                                @endphp
+                                <div
+                                    class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60"
+                                    wire:click="$set('selectedTasteCategory', null)"
+                                    role="dialog"
+                                    aria-modal="true"
+                                    aria-labelledby="nose-category-modal-title"
+                                >
+                                    <div
+                                        class="w-full max-w-lg max-h-[85vh] overflow-auto rounded-xl border border-zinc-200 bg-white shadow-xl"
+                                        x-data
+                                        x-on:click.stop
+                                    >
+                                        <div class="sticky top-0 flex items-center justify-between gap-3 border-b border-zinc-200 bg-white px-4 py-3">
+                                            <div class="flex items-center gap-2">
+                                                @if($modalCat && $modalCat->emoji)
+                                                    <span class="text-2xl">{{ $modalCat->emoji }}</span>
+                                                @endif
+                                                <h2 id="nose-category-modal-title" class="text-lg font-semibold text-zinc-800">{{ $modalCat ? $modalCat->name : $selectedTasteCategory }}</h2>
+                                            </div>
+                                            <button
+                                                type="button"
+                                                wire:click="$set('selectedTasteCategory', null)"
+                                                class="rounded-lg p-2 text-zinc-500 hover:bg-zinc-100 hover:text-zinc-800"
+                                                aria-label="{{ __('session.close') }}"
+                                            >
+                                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                                            </button>
+                                        </div>
+                                        <div class="p-4 flex flex-wrap gap-2">
+                                            @foreach($tags as $tag)
+                                                @php
+                                                    $isSelected = in_array($tag->slug, $tasting_nose_tags ?? []);
+                                                    $disabled = !$isSelected && $noseSelectedCount >= $maxTags;
+                                                @endphp
+                                                <button
+                                                    type="button"
+                                                    wire:click="toggleNoseTag('{{ $tag->slug }}')"
+                                                    class="inline-flex items-center gap-2 px-4 py-2.5 text-sm border-2 rounded-full transition {{ $isSelected ? 'bg-zinc-900 text-white border-zinc-900' : 'bg-white border-zinc-200 text-zinc-700' }} {{ $disabled ? 'opacity-50 pointer-events-none' : 'hover:shadow hover:border-zinc-300' }}"
+                                                    aria-pressed="{{ $isSelected ? 'true' : 'false' }}"
+                                                    title="{{ $tag->name }}"
+                                                >
+                                                    <span class="font-medium">{{ $tag->name }}</span>
+                                                    @if($isSelected)
+                                                        <span class="inline-flex bg-white text-zinc-900 rounded-full w-5 h-5 items-center justify-center text-xs">✓</span>
+                                                    @endif
+                                                </button>
+                                            @endforeach
+                                        </div>
+                                    </div>
+                                </div>
+                            @endif
+
+                            <div class="mt-6 flex gap-2">
+                                <flux:button type="button" variant="ghost" wire:click="$set('formStep', 1)">{{ __('session.back') }}</flux:button>
+                                <flux:button type="button" variant="primary" wire:click="$set('formStep', 3)">{{ __('session.next') }}</flux:button>
+                            </div>
+                        </div>
+                    @elseif ($formStep === 3)
                         @php
                             $categories = $this->tasteTagsGrouped;
                             $selectedCount = count($tasting_tags ?? []);
@@ -607,7 +760,47 @@
                             @endif
 
                             <div class="mt-6 flex gap-2">
-                                <flux:button type="button" variant="ghost" wire:click="goToColorStep">{{ __('session.back') }}</flux:button>
+                                <flux:button type="button" variant="ghost" wire:click="$set('formStep', 2)">{{ __('session.back') }}</flux:button>
+                                <flux:button type="button" variant="primary" wire:click="$set('formStep', 4)">{{ __('session.next') }}</flux:button>
+                            </div>
+                        </div>
+                    @else
+                        <div>
+                            <flux:heading size="sm">{{ __('session.rating') }}</flux:heading>
+                            <p class="mt-1 text-sm text-zinc-500">
+                                {{ __('Geef een beoordeling op een schaal van 1 tot 10 en beschrijf kort hoe je deze whisky hebt ervaren.') }}
+                            </p>
+
+                            <div
+                                class="mt-4 inline-flex items-center gap-2"
+                                x-data="{ current: @entangle('rating_score'), hover: null }"
+                            >
+                                <div class="flex items-center gap-0.5 text-2xl" @mouseleave="hover = null">
+                                    @for($j = 1; $j <= 10; $j++)
+                                        <button
+                                            type="button"
+                                            class="focus:outline-none"
+                                            x-on:mouseenter="hover = {{ $j }}"
+                                            x-on:click="current = {{ $j }}; $wire.set('rating_score', current)"
+                                        >
+                                            <span
+                                                class="transition-colors"
+                                                :class="(hover ?? current) >= {{ $j }} ? 'text-amber-400' : 'text-zinc-300'"
+                                            >
+                                                ★
+                                            </span>
+                                        </button>
+                                    @endfor
+                                </div>
+                                <span class="text-sm text-zinc-600" x-text="current ? (Number(current).toFixed(1) + ' / 10') : '—'"></span>
+                            </div>
+
+                            <div class="mt-4">
+                                <flux:textarea wire:model="rating_note" :label="__('session.rating_note')" rows="3" />
+                            </div>
+
+                            <div class="mt-6 flex gap-2">
+                                <flux:button type="button" variant="ghost" wire:click="$set('formStep', 3)">{{ __('session.back') }}</flux:button>
                                 <flux:button type="submit" variant="primary">{{ __('session.submit') }}</flux:button>
                             </div>
                         </div>
@@ -622,27 +815,44 @@
         <script>/* If page loads in reveal state (e.g. refresh), show drink modal without smoke */ window.dispatchEvent(new CustomEvent('reveal-show-now'));</script>
         @php
             $revealRound = $this->getCurrentRoundProperty();
+            $avgRatingScoreboard = $revealRound
+                ? $revealRound->submissions()->whereNotNull('rating_score')->avg('rating_score')
+                : null;
         @endphp
         <section class="space-y-8">
-            <div class="rounded-xl border border-zinc-200 bg-zinc-50 p-6 text-center opacity-0 transition duration-700" x-data x-init="setTimeout(() => $el.classList.add('opacity-100'), 100)">
+            <div class="rounded-xl border border-zinc-200 bg-zinc-50 p-6 text-center">
                 {{-- reveal modal will show the drink image; keep original scoreboard below --}}
-             
-             <flux:heading size="lg">{{ __('session.scoreboard') }}</flux:heading>
-             <flux:text class="mt-1 text-zinc-500">{{ __('session.this_round') }}: {{ $revealRound->team_total ?? 0 }} {{ __('session.points') }}</flux:text>
-             <ul class="mt-4 space-y-2">
-                @foreach ($tastingSession->activeParticipants as $p)
-                    @php
-                        $roundPoints = ($revealRound->round_score ?? [])[$p->id] ?? 0;
-                    @endphp
-                    <li class="flex items-center justify-between rounded-lg bg-zinc-100 px-4 py-2 dark:bg-zinc-800">
-                        <span>{{ $p->display_name }}</span>
-                        <span class="font-medium">{{ $roundPoints }} {{ __('session.pts') }} ({{ __('session.total') }}: {{ $p->total_score }})</span>
-                    </li>
-                @endforeach
-            </ul>
-            @can('update', $tastingSession)
-                <flux:button variant="primary" class="mt-6" wire:click="continueToSetup">{{ __('session.back_to_setup') }}</flux:button>
-            @endcan
+                <div class="flex flex-col items-center gap-3 sm:flex-row sm:items-baseline sm:justify-between">
+                    <div class="text-center sm:text-left">
+                        <flux:heading size="lg">{{ __('session.scoreboard') }}</flux:heading>
+                        <flux:text class="mt-1 text-zinc-500">
+                            {{ __('session.this_round') }}: {{ $revealRound->team_total ?? 0 }} {{ __('session.points') }}
+                            @if($avgRatingScoreboard !== null)
+                                · {{ __('session.avg_rating') }}: {{ number_format($avgRatingScoreboard, 1) }} / 10
+                            @endif
+                        </flux:text>
+                    </div>
+                    <div class="flex flex-wrap justify-center gap-2">
+                        <flux:button type="button" variant="ghost" size="sm" wire:click="openScoreBreakdown">
+                            {{ __('session.view_tag_breakdown') }}
+                        </flux:button>
+                    </div>
+                </div>
+                <ul class="mt-4 space-y-2">
+                    @foreach ($tastingSession->activeParticipants as $p)
+                        @php
+                            $roundPoints = ($revealRound->round_score ?? [])[$p->id] ?? 0;
+                        @endphp
+                        <li class="flex items-center justify-between rounded-lg bg-zinc-100 px-4 py-2 dark:bg-zinc-800">
+                            <span>{{ $p->display_name }}</span>
+                            <span class="font-medium">{{ $roundPoints }} {{ __('session.pts') }} ({{ __('session.total') }}: {{ $p->total_score }})</span>
+                        </li>
+                    @endforeach
+                </ul>
+                @can('update', $tastingSession)
+                    <flux:button variant="primary" class="mt-6" wire:click="continueToSetup">{{ __('session.back_to_setup') }}</flux:button>
+                @endcan
+            </div>
         </section>
     @endif
 
@@ -781,4 +991,247 @@
             <p class="mt-2 text-xl text-white/90">🥃</p>
         </div>
     </div>
+
+    {{-- Score breakdown modal: per tag and per participant for this round --}}
+    @if ($showScoreBreakdown && $currentRoundBreakdown)
+        <div
+            class="fixed inset-0 z-[70] flex items-start justify-center bg-black/70 p-4 overflow-y-auto"
+            role="dialog"
+            aria-modal="true"
+        >
+            <div class="w-full max-w-5xl rounded-2xl border border-zinc-200 bg-white shadow-2xl dark:border-zinc-700 dark:bg-zinc-900">
+                <div class="flex items-center justify-between gap-3 border-b border-zinc-200 px-4 py-3 dark:border-zinc-700">
+                    <div>
+                        <p class="text-xs font-semibold uppercase tracking-widest text-amber-600 dark:text-amber-400">
+                            {{ __('session.score_breakdown_title') }}
+                        </p>
+                        @if ($revealRound ?? null)
+                            <p class="text-sm text-zinc-600 dark:text-zinc-300">
+                                {{ $revealRound->drink?->name }} · {{ __('session.this_round') }}: {{ $revealRound->team_total ?? 0 }} {{ __('session.points') }}
+                            </p>
+                        @endif
+                    </div>
+                    <button
+                        type="button"
+                        wire:click="closeScoreBreakdown"
+                        class="inline-flex h-9 w-9 items-center justify-center rounded-full bg-zinc-100 text-zinc-700 hover:bg-zinc-200 dark:bg-zinc-800 dark:text-zinc-200 dark:hover:bg-zinc-700"
+                        aria-label="{{ __('Close') }}"
+                    >
+                        <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                    </button>
+                </div>
+                <div class="max-h-[80vh] overflow-y-auto px-4 py-4 md:px-6 md:py-5">
+                    @if(isset($currentRoundBreakdown['rounds']))
+                        @foreach($currentRoundBreakdown['rounds'] as $roundIndex => $roundData)
+                            @php
+                                $details = $roundData['details'] ?? ['tags' => [], 'participants' => []];
+                                $drinkName = $roundData['drink']['name'] ?? null;
+                                $avgRatingRound = $roundData['avg_rating'] ?? null;
+                            @endphp
+                            <div class="mb-6 last:mb-0">
+                                <div class="mb-3 flex flex-wrap items-baseline justify-between gap-2 border-b border-zinc-200 pb-2 dark:border-zinc-700">
+                                    <div class="text-sm font-semibold text-zinc-800 dark:text-zinc-100">
+                                        Ronde {{ $roundIndex + 1 }}@if($drinkName) · {{ $drinkName }}@endif
+                                    </div>
+                                    <div class="text-xs text-zinc-500 dark:text-zinc-400">
+                                        {{ __('session.this_round') }}: {{ $roundData['team_total'] ?? 0 }} {{ __('session.points') }}
+                                        @if(!is_null($avgRatingRound))
+                                            · {{ __('session.avg_rating') }}: {{ number_format($avgRatingRound, 1) }} / 10
+                                        @endif
+                                    </div>
+                                </div>
+                                <div class="grid gap-6 md:grid-cols-2">
+                                    {{-- Tags column --}}
+                                    <div>
+                                        <h3 class="text-sm font-semibold text-zinc-800 dark:text-zinc-100">
+                                            {{ __('session.tags') }}
+                                        </h3>
+                                        <div class="mt-3 space-y-2">
+                                            @php
+                                                $scoringTags = array_filter($details['tags'] ?? [], function ($t) {
+                                                    return ($t['team_points'] ?? 0) > 0;
+                                                });
+                                            @endphp
+                                            @forelse ($scoringTags as $tag)
+                                                <div class="rounded-lg border border-zinc-200 bg-zinc-50 px-3 py-2.5 text-sm dark:border-zinc-700 dark:bg-zinc-800">
+                                                    <div class="flex items-center justify-between gap-2">
+                                                        <div class="flex items-center gap-2">
+                                                            @if(!empty($tag['emoji']))
+                                                                <span class="text-lg">{{ $tag['emoji'] }}</span>
+                                                            @endif
+                                                            <span class="font-medium text-zinc-800 dark:text-zinc-100">
+                                                                {{ $tag['name'] }}
+                                                            </span>
+                                                        </div>
+                                                        <div class="text-right text-xs text-zinc-600 dark:text-zinc-300">
+                                                            <div>{{ trans('session.tag_label_players', ['count' => $tag['count']]) }}</div>
+                                                            <div>{{ trans('session.tag_label_points', ['points' => $tag['team_points']]) }}</div>
+                                                        </div>
+                                                    </div>
+                                                    @if(!empty($tag['participants']))
+                                                        <div class="mt-2 flex flex-wrap gap-1">
+                                                            @foreach($tag['participants'] as $p)
+                                                                @if($p['points'] > 0)
+                                                                    <span class="inline-flex items-center gap-1 rounded-full bg-white px-2 py-0.5 text-xs text-zinc-700 shadow-sm dark:bg-zinc-900 dark:text-zinc-200">
+                                                                        <span>{{ $p['name'] }}</span>
+                                                                        <span class="text-emerald-600 dark:text-emerald-400 font-semibold">+{{ $p['points'] }}</span>
+                                                                    </span>
+                                                                @endif
+                                                            @endforeach
+                                                        </div>
+                                                    @endif
+                                                </div>
+                                            @empty
+                                                <p class="text-xs text-zinc-500 dark:text-zinc-400">{{ __('session.no_scoring_tags') }}</p>
+                                            @endforelse
+                                        </div>
+                                    </div>
+
+                                    {{-- Participants column --}}
+                                    <div>
+                                        <h3 class="text-sm font-semibold text-zinc-800 dark:text-zinc-100">
+                                            {{ __('session.participants') }}
+                                        </h3>
+                                        <div class="mt-3 space-y-2">
+                                            @php
+                                                $scoringParticipants = array_filter($details['participants'] ?? [], function ($p) {
+                                                    return ($p['total'] ?? 0) > 0;
+                                                });
+                                            @endphp
+                                            @forelse ($scoringParticipants as $p)
+                                                <div class="rounded-lg border border-zinc-200 bg-zinc-50 px-3 py-2.5 text-sm dark:border-zinc-700 dark:bg-zinc-800">
+                                                    <div class="flex items-center justify-between gap-2">
+                                                        <span class="font-medium text-zinc-800 dark:text-zinc-100">{{ $p['name'] }}</span>
+                                                        <span class="text-xs font-semibold text-emerald-700 dark:text-emerald-400">
+                                                            +{{ $p['total'] }} {{ __('session.points') }}
+                                                        </span>
+                                                    </div>
+                                                    @if(!empty($p['by_tag']))
+                                                        <div class="mt-2 flex flex-wrap gap-1">
+                                                            @foreach($p['by_tag'] as $slug => $points)
+                                                                @if($points > 0)
+                                                                    @php
+                                                                        $tag = $details['tags'][$slug] ?? null;
+                                                                        $label = $tag['name'] ?? $slug;
+                                                                    @endphp
+                                                                    <span class="inline-flex items-center gap-1 rounded-full bg-white px-2 py-0.5 text-xs text-zinc-700 shadow-sm dark:bg-zinc-900 dark:text-zinc-200">
+                                                                        <span>{{ $label }}</span>
+                                                                        <span class="text-emerald-600 dark:text-emerald-400 font-semibold">+{{ $points }}</span>
+                                                                    </span>
+                                                                @endif
+                                                            @endforeach
+                                                        </div>
+                                                    @endif
+                                                </div>
+                                            @empty
+                                                <p class="text-xs text-zinc-500 dark:text-zinc-400">{{ __('session.no_participant_scores') }}</p>
+                                            @endforelse
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        @endforeach
+                    @else
+                        @php
+                            $details = $currentRoundBreakdown;
+                        @endphp
+                        <div class="grid gap-6 md:grid-cols-2">
+                            {{-- Tags column --}}
+                            <div>
+                                <h3 class="text-sm font-semibold text-zinc-800 dark:text-zinc-100">
+                                    {{ __('session.tags') }}
+                                </h3>
+                                <div class="mt-3 space-y-2">
+                                    @php
+                                        $scoringTags = array_filter($details['tags'] ?? [], function ($t) {
+                                            return ($t['team_points'] ?? 0) > 0;
+                                        });
+                                    @endphp
+                                    @forelse ($scoringTags as $tag)
+                                        <div class="rounded-lg border border-zinc-200 bg-zinc-50 px-3 py-2.5 text-sm dark:border-zinc-700 dark:bg-zinc-800">
+                                            <div class="flex items-center justify-between gap-2">
+                                                <div class="flex items-center gap-2">
+                                                    @if(!empty($tag['emoji']))
+                                                        <span class="text-lg">{{ $tag['emoji'] }}</span>
+                                                    @endif
+                                                    <span class="font-medium text-zinc-800 dark:text-zinc-100">
+                                                        {{ $tag['name'] }}
+                                                    </span>
+                                                </div>
+                                                <div class="text-right text-xs text-zinc-600 dark:text-zinc-300">
+                                                    <div>{{ trans('session.tag_label_players', ['count' => $tag['count']]) }}</div>
+                                                    <div>{{ trans('session.tag_label_points', ['points' => $tag['team_points']]) }}</div>
+                                                </div>
+                                            </div>
+                                            @if(!empty($tag['participants']))
+                                                <div class="mt-2 flex flex-wrap gap-1">
+                                                    @foreach($tag['participants'] as $p)
+                                                        @if($p['points'] > 0)
+                                                            <span class="inline-flex items-center gap-1 rounded-full bg-white px-2 py-0.5 text-xs text-zinc-700 shadow-sm dark:bg-zinc-900 dark:text-zinc-200">
+                                                                <span>{{ $p['name'] }}</span>
+                                                                <span class="text-emerald-600 dark:text-emerald-400 font-semibold">+{{ $p['points'] }}</span>
+                                                            </span>
+                                                        @endif
+                                                    @endforeach
+                                                </div>
+                                            @endif
+                                        </div>
+                                    @empty
+                                        <p class="text-xs text-zinc-500 dark:text-zinc-400">{{ __('session.no_scoring_tags') }}</p>
+                                    @endforelse
+                                </div>
+                            </div>
+
+                            {{-- Participants column --}}
+                            <div>
+                                <h3 class="text-sm font-semibold text-zinc-800 dark:text-zinc-100">
+                                    {{ __('session.participants') }}
+                                </h3>
+                                <div class="mt-3 space-y-2">
+                                    @php
+                                        $scoringParticipants = array_filter($details['participants'] ?? [], function ($p) {
+                                            return ($p['total'] ?? 0) > 0;
+                                        });
+                                    @endphp
+                                    @forelse ($scoringParticipants as $p)
+                                        <div class="rounded-lg border border-zinc-200 bg-zinc-50 px-3 py-2.5 text-sm dark:border-zinc-700 dark:bg-zinc-800">
+                                            <div class="flex items-center justify-between gap-2">
+                                                <span class="font-medium text-zinc-800 dark:text-zinc-100">{{ $p['name'] }}</span>
+                                                <span class="text-xs font-semibold text-emerald-700 dark:text-emerald-400">
+                                                    +{{ $p['total'] }} {{ __('session.points') }}
+                                                </span>
+                                            </div>
+                                            @if(!empty($p['by_tag']))
+                                                <div class="mt-2 flex flex-wrap gap-1">
+                                                    @foreach($p['by_tag'] as $slug => $points)
+                                                        @if($points > 0)
+                                                            @php
+                                                                $tag = $details['tags'][$slug] ?? null;
+                                                                $label = $tag['name'] ?? $slug;
+                                                            @endphp
+                                                            <span class="inline-flex items-center gap-1 rounded-full bg-white px-2 py-0.5 text-xs text-zinc-700 shadow-sm dark:bg-zinc-900 dark:text-zinc-200">
+                                                                <span>{{ $label }}</span>
+                                                                <span class="text-emerald-600 dark:text-emerald-400 font-semibold">+{{ $points }}</span>
+                                                            </span>
+                                                        @endif
+                                                    @endforeach
+                                                </div>
+                                            @endif
+                                        </div>
+                                    @empty
+                                        <p class="text-xs text-zinc-500 dark:text-zinc-400">{{ __('session.no_participant_scores') }}</p>
+                                    @endforelse
+                                </div>
+                            </div>
+                        </div>
+                    @endif
+                </div>
+                <div class="flex items-center justify-end gap-2 border-t border-zinc-200 px-4 py-3 dark:border-zinc-700">
+                    <flux:button type="button" variant="ghost" size="sm" wire:click="closeScoreBreakdown">
+                        {{ __('session.close') }}
+                    </flux:button>
+                </div>
+            </div>
+        </div>
+    @endif
 </div>

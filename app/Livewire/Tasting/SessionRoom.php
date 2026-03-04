@@ -49,9 +49,24 @@ class SessionRoom extends Component
     /** Selected taste category slug for step 2 (null = show category picker) */
     public ?string $selectedTasteCategory = null;
 
+    /** Whether the current participant is editing an existing submission for this round. */
+    public bool $editingSubmission = false;
+
     public string $tasting_color = '';
 
+    public array $tasting_nose_tags = [];
+
     public array $tasting_tags = [];
+
+    /** Score breakdown modal state (for round_reveal). */
+    public bool $showScoreBreakdown = false;
+
+    public ?array $currentRoundBreakdown = null;
+
+    /** Rating (1–10 scale) and free-text note. */
+    public ?float $rating_score = null;
+
+    public string $rating_note = '';
 
     public function mount(TastingSession $tastingSession): void
     {
@@ -163,7 +178,7 @@ class SessionRoom extends Component
         ]);
         broadcast(new RoundStarted($this->tastingSession->id, $round->id))->toOthers();
         $this->tastingSession->refresh();
-        $this->reset(['formStep', 'tasting_color', 'tasting_tags']);
+        $this->reset(['formStep', 'tasting_color', 'tasting_nose_tags', 'tasting_tags', 'rating_score', 'rating_note']);
     }
 
     public function submitTasting(): void
@@ -176,16 +191,27 @@ class SessionRoom extends Component
         $maxTags = $this->tastingSession->max_taste_tags;
         $this->validate([
             'tasting_color' => ['nullable', 'string', 'max:100'],
+            'tasting_nose_tags' => ['array', 'max:'.$maxTags],
+            'tasting_nose_tags.*' => ['string', 'exists:taste_tags,slug'],
             'tasting_tags' => ['array', 'max:'.$maxTags],
             'tasting_tags.*' => ['string', 'exists:taste_tags,slug'],
+            // rating_score is stored as a 1–10 scale (optioneel)
+            'rating_score' => ['nullable', 'numeric', 'min:1', 'max:10'],
+            'rating_note' => ['nullable', 'string', 'max:1000'],
         ]);
 
-        TastingSubmission::create([
+        // Create or update the current participant's submission for this round
+        $submission = TastingSubmission::firstOrNew([
             'tasting_round_id' => $round->id,
             'session_participant_id' => $participant->id,
-            'color' => $this->tasting_color ?: null,
-            'taste_tags' => $this->tasting_tags,
         ]);
+
+        $submission->color = $this->tasting_color ?: null;
+        $submission->nose_tags = $this->tasting_nose_tags;
+        $submission->taste_tags = $this->tasting_tags;
+        $submission->rating_score = $this->rating_score;
+        $submission->rating_note = $this->rating_note ?: null;
+        $submission->save();
 
         $count = $round->submissions()->count();
         $total = $this->tastingSession->activeParticipants()->count();
@@ -197,7 +223,8 @@ class SessionRoom extends Component
         }
 
         $this->tastingSession->refresh();
-        $this->reset(['formStep', 'tasting_color', 'tasting_tags']);
+        $this->editingSubmission = false;
+        $this->reset(['formStep', 'tasting_color', 'tasting_nose_tags', 'tasting_tags', 'rating_score', 'rating_note']);
     }
 
     // Toggle a taste tag for the current participant, enforcing the max tags limit
@@ -219,6 +246,24 @@ class SessionRoom extends Component
         }
 
         $this->tasting_tags = array_values(array_merge($selected, [$slug]));
+    }
+
+    public function toggleNoseTag(string $slug): void
+    {
+        $max = $this->tastingSession->max_taste_tags;
+        $selected = $this->tasting_nose_tags ?? [];
+
+        if (in_array($slug, $selected, true)) {
+            $this->tasting_nose_tags = array_values(array_filter($selected, fn ($s) => $s !== $slug));
+            return;
+        }
+
+        if (count($selected) >= $max) {
+            session()->flash('taste_tag_limit', __('session.pick_up_to', ['max' => $max]));
+            return;
+        }
+
+        $this->tasting_nose_tags = array_values(array_merge($selected, [$slug]));
     }
 
     #[Computed]
@@ -281,6 +326,75 @@ class SessionRoom extends Component
 
     public function goToColorStep(): void
     {
+        $this->formStep = 1;
+        $this->selectedTasteCategory = null;
+    }
+
+    public function openScoreBreakdown(): void
+    {
+        $round = $this->getCurrentRoundProperty();
+        $service = app(TastingScoringService::class);
+
+        // If we are in a round context, show breakdown for the current round.
+        if ($round) {
+            $this->currentRoundBreakdown = $service->computeRoundDetails($round);
+        } else {
+            $this->currentRoundBreakdown = [
+                'rounds' => $this->tastingSession->rounds()
+                    ->whereNotNull('round_score')
+                    ->orderBy('id')
+                    ->get()
+                    ->map(function ($r) use ($service) {
+                        return [
+                            'drink' => [
+                                'name' => optional($r->drink)->name,
+                            ],
+                            'team_total' => $r->team_total ?? 0,
+                            'avg_rating' => $r->submissions()->whereNotNull('rating_score')->avg('rating_score'),
+                            'details' => $service->computeRoundDetails($r),
+                        ];
+                    })
+                    ->values()
+                    ->all(),
+            ];
+        }
+
+        $this->showScoreBreakdown = true;
+    }
+
+    public function closeScoreBreakdown(): void
+    {
+        $this->showScoreBreakdown = false;
+    }
+
+    /**
+     * Allow the current participant (including the host, if joined) to reopen
+     * and edit their own tasting form for the current round.
+     */
+    public function reopenTastingForm(): void
+    {
+        $participant = $this->getCurrentParticipantProperty();
+        $round = $this->getCurrentRoundProperty();
+
+        if (! $participant || ! $round) {
+            return;
+        }
+
+        $submission = TastingSubmission::where('tasting_round_id', $round->id)
+            ->where('session_participant_id', $participant->id)
+            ->first();
+
+        if (! $submission) {
+            return;
+        }
+
+        $this->tasting_color = $submission->color ?? '';
+        $this->tasting_nose_tags = $submission->nose_tags ?? [];
+        $this->tasting_tags = $submission->taste_tags ?? [];
+        $this->rating_score = $submission->rating_score;
+        $this->rating_note = $submission->rating_note ?? '';
+
+        $this->editingSubmission = true;
         $this->formStep = 1;
         $this->selectedTasteCategory = null;
     }
@@ -447,6 +561,10 @@ class SessionRoom extends Component
 
     public function render()
     {
+        // Always sync the session from the database so guests see state changes
+        // (like moving to round_reveal) after a $wire.$refresh() without full page reload.
+        $this->tastingSession->refresh();
+
         return view('livewire.tasting.session-room')
             ->layout('layouts.tasting', [
                 'sessionName' => $this->tastingSession->name,

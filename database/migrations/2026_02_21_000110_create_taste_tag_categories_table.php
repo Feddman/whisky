@@ -11,6 +11,10 @@ return new class extends Migration
      */
     public function up(): void
     {
+        if (Schema::hasTable('taste_tag_categories')) {
+            return;
+        }
+
         Schema::create('taste_tag_categories', function (Blueprint $table) {
             $table->id();
             $table->string('slug')->unique();

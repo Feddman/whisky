@@ -4,14 +4,27 @@
         @include('partials.head')
     </head>
     <body class="min-h-screen bg-white dark:bg-zinc-800">
+        @php
+            $sessionTotalPoints = null;
+            if (isset($tastingSessionId)) {
+                $ts = \App\Models\TastingSession::with('rounds')->find($tastingSessionId);
+                $sessionTotalPoints = $ts ? $ts->rounds->sum('team_total') : null;
+            }
+        @endphp
+
         <header class="sticky top-0 z-10 flex items-center justify-between border-b border-zinc-200 bg-zinc-50 px-4 py-3 dark:border-zinc-700 dark:bg-zinc-900">
-            <a href="{{ route('home') }}" wire:navigate class="flex items-center gap-2">
+            <a href="{{ route('home') }}" wire:navigate class="flex items-center gap-3">
                 {{-- <x-app-logo-icon class="w-20 text-black dark:text-white" /> --}}
                 @if (isset($sessionName))
                     <span class="text-lg font-semibold text-zinc-800 dark:text-zinc-200">{{ $sessionName }}</span>
                 @endif
+                @if (! is_null($sessionTotalPoints))
+                    <span class="inline-flex items-center gap-1 rounded-full bg-amber-100 px-3 py-1 text-xs font-semibold text-amber-800 dark:bg-amber-900/40 dark:text-amber-300">
+                        {{ __('session.team_total_label') }} {{ $sessionTotalPoints }} {{ __('session.points') }}
+                    </span>
+                @endif
             </a>
-            <div class="flex items-center gap-2">
+            <div class="flex items-center gap-3">
                 @auth
                     <flux:link href="{{ route('dashboard') }}" wire:navigate>{{ __('Dashboard') }}</flux:link>
                 @endif
