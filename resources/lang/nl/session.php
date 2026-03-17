@@ -88,7 +88,7 @@ return [
     'add' => 'Toevoegen',
     'cancel' => 'Annuleren',
     'no_drinks' => 'Nog geen drankjes. Voeg er een toe om te beginnen.',
-    'wait_host_prepare' => 'Even geduld terwijl de host de eerste proeverij voorbereidt!',
+    'wait_host_prepare' => 'Even geduld terwijl de host de proeverij voorbereidt!',
     'share' => 'Delen',
     'join_code' => 'Sessiecode',
     'share_whatsapp' => 'Deel via WhatsApp',

@@ -430,7 +430,9 @@
                         </div>
                     @endif
                     <div x-show="revealTextVisible" x-cloak x-transition:enter="transition ease-out duration-[1000ms]" x-transition:enter-start="opacity-0 translate-y-4" x-transition:enter-end="opacity-100 translate-y-0">
-                        <h2 class="reveal-drink-name mt-6 text-3xl md:text-4xl font-bold text-zinc-900">{{ $revealDrink ? $revealDrink->name : '' }}</h2>
+                        <h2 class="reveal-drink-name mt-6 text-3xl md:text-4xl font-bold text-zinc-900" style="color:#111827;">
+                            {{ $revealDrink ? $revealDrink->name : '' }}
+                        </h2>
                         @if ($revealDrink && ($revealDrink->year || $revealDrink->location))
                             <p class="reveal-drink-meta mt-1 text-lg text-zinc-800">{{ $revealDrink->year }} {{ $revealDrink->location }}</p>
                         @endif
