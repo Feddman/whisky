@@ -58,6 +58,11 @@ class SessionRoom extends Component
 
     public array $tasting_tags = [];
 
+    /** Manual tag search inputs for nose/taste steps. */
+    public string $nose_tag_search = '';
+
+    public string $taste_tag_search = '';
+
     /** Score breakdown modal state (for round_reveal). */
     public bool $showScoreBreakdown = false;
 
@@ -178,7 +183,7 @@ class SessionRoom extends Component
         ]);
         broadcast(new RoundStarted($this->tastingSession->id, $round->id))->toOthers();
         $this->tastingSession->refresh();
-        $this->reset(['formStep', 'tasting_color', 'tasting_nose_tags', 'tasting_tags', 'rating_score', 'rating_note']);
+        $this->reset(['formStep', 'tasting_color', 'tasting_nose_tags', 'tasting_tags', 'nose_tag_search', 'taste_tag_search', 'rating_score', 'rating_note']);
     }
 
     public function submitTasting(): void
@@ -224,7 +229,7 @@ class SessionRoom extends Component
 
         $this->tastingSession->refresh();
         $this->editingSubmission = false;
-        $this->reset(['formStep', 'tasting_color', 'tasting_nose_tags', 'tasting_tags', 'rating_score', 'rating_note']);
+        $this->reset(['formStep', 'tasting_color', 'tasting_nose_tags', 'tasting_tags', 'nose_tag_search', 'taste_tag_search', 'rating_score', 'rating_note']);
     }
 
     // Toggle a taste tag for the current participant, enforcing the max tags limit
@@ -393,6 +398,8 @@ class SessionRoom extends Component
         $this->tasting_tags = $submission->taste_tags ?? [];
         $this->rating_score = $submission->rating_score;
         $this->rating_note = $submission->rating_note ?? '';
+        $this->nose_tag_search = '';
+        $this->taste_tag_search = '';
 
         $this->editingSubmission = true;
         $this->formStep = 1;
