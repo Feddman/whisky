@@ -597,10 +597,6 @@
                         <div>
                             <flux:heading size="sm">{{ __('session.nose_palate') }}</flux:heading>
 
-                            @if(session('taste_tag_limit'))
-                                <div class="mt-2 text-sm text-rose-600">{{ session('taste_tag_limit') }}</div>
-                            @endif
-                            <div class="mt-3 text-sm text-zinc-800">{{ __('session.pick_up_to', ['max' => $maxTags]) }} — <strong>{{ $noseSelectedCount }}</strong> {{ __('session.selected') }}</div>
                             <div class="mt-4 grid gap-3 sm:grid-cols-2">
                                 <div class="rounded-lg border border-zinc-300 bg-white p-3">
                                     <label class="block text-sm font-semibold text-zinc-900">{{ __('session.nose_intensity') }}</label>
@@ -621,6 +617,10 @@
                                     <input type="range" min="1" max="5" step="1" wire:model.live="nose_complexity" class="mt-2 w-full accent-zinc-900" />
                                 </div>
                             </div>
+                            @if(session('taste_tag_limit'))
+                                <div class="mt-3 text-sm text-rose-600">{{ session('taste_tag_limit') }}</div>
+                            @endif
+                            <div class="mt-3 text-sm text-zinc-800">{{ __('session.pick_up_to', ['max' => $maxTags]) }} — <strong>{{ $noseSelectedCount }}</strong> {{ __('session.selected') }}</div>
                             @php
                                 $selectedNoseTags = \App\Models\TasteTag::whereIn('slug', $tasting_nose_tags ?? [])->orderBy('name')->get();
                             @endphp
@@ -769,11 +769,6 @@
                         @endphp
                         <div>
                             <flux:heading size="sm">{{ __('session.taste_palate') }}</flux:heading>
-                            <flux:text class="text-zinc-800">{{ __('session.pick_up_to', ['max' => $tastingSession->max_taste_tags]) }}</flux:text>
-                            @if(session('taste_tag_limit'))
-                                <div class="mt-2 text-sm text-rose-600">{{ session('taste_tag_limit') }}</div>
-                            @endif
-                            <div class="mt-3 text-sm text-zinc-800">{{ __('session.pick_up_to', ['max' => $maxTags]) }} — <strong>{{ $selectedCount }}</strong> {{ __('session.selected') }}</div>
                             <div class="mt-4 grid gap-3 sm:grid-cols-3">
                                 <div class="rounded-lg border border-zinc-300 bg-white p-3">
                                     <label class="block text-sm font-semibold text-zinc-900">{{ __('session.mouthfeel') }}</label>
@@ -803,6 +798,10 @@
                                     <input type="range" min="1" max="5" step="1" wire:model.live="taste_development" class="mt-2 w-full accent-zinc-900" />
                                 </div>
                             </div>
+                            @if(session('taste_tag_limit'))
+                                <div class="mt-3 text-sm text-rose-600">{{ session('taste_tag_limit') }}</div>
+                            @endif
+                            <div class="mt-3 text-sm text-zinc-800">{{ __('session.pick_up_to', ['max' => $maxTags]) }} — <strong>{{ $selectedCount }}</strong> {{ __('session.selected') }}</div>
                             <div class="mt-3">
                                 <input
                                     type="text"
