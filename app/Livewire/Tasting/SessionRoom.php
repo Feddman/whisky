@@ -439,7 +439,22 @@ class SessionRoom extends Component
 
         // If we are in a round context, show breakdown for the current round.
         if ($round) {
-            $this->currentRoundBreakdown = $service->computeRoundDetails($round);
+            $details = $service->computeRoundDetails($round);
+            $details['ratings'] = $round->submissions()
+                ->with('sessionParticipant')
+                ->whereNotNull('rating_score')
+                ->get()
+                ->map(function ($s) {
+                    return [
+                        'participant' => optional($s->sessionParticipant)->display_name ?? '#'.$s->session_participant_id,
+                        'score' => $s->rating_score,
+                        'note' => $s->rating_note,
+                    ];
+                })
+                ->sortByDesc('score')
+                ->values()
+                ->all();
+            $this->currentRoundBreakdown = $details;
         } else {
             $this->currentRoundBreakdown = [
                 'rounds' => $this->tastingSession->rounds()
@@ -453,6 +468,20 @@ class SessionRoom extends Component
                             ],
                             'team_total' => $r->team_total ?? 0,
                             'avg_rating' => $r->submissions()->whereNotNull('rating_score')->avg('rating_score'),
+                            'ratings' => $r->submissions()
+                                ->with('sessionParticipant')
+                                ->whereNotNull('rating_score')
+                                ->get()
+                                ->map(function ($s) {
+                                    return [
+                                        'participant' => optional($s->sessionParticipant)->display_name ?? '#'.$s->session_participant_id,
+                                        'score' => $s->rating_score,
+                                        'note' => $s->rating_note,
+                                    ];
+                                })
+                                ->sortByDesc('score')
+                                ->values()
+                                ->all(),
                             'details' => $service->computeRoundDetails($r),
                         ];
                     })

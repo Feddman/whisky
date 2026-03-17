@@ -503,7 +503,7 @@
     @if ($tastingSession->status === 'awaiting_reveal')
         <section class="rounded-lg border border-zinc-300 bg-white p-6">
             @can('update', $tastingSession)
-                <flux:heading size="lg">{{ __('session.everyone_submitted') }}</flux:heading>
+                <flux:heading size="lg" class="text-zinc-900">{{ __('session.everyone_submitted') }}</flux:heading>
                 <flux:text class="mt-2">{{ __('session.start_reveal_ready') }}</flux:text>
                 <button type="button" wire:click="startReveal" class="mt-4 inline-flex items-center justify-center rounded-lg px-5 py-3 text-base font-semibold text-white shadow-lg" style="background-color: #2563eb; min-height: 48px;">
                     {{ __('session.reveal_countdown') }}
@@ -530,7 +530,7 @@
                     <flux:heading size="lg" class="text-zinc-900">{{ __('Waiting for others') }}</flux:heading>
                     <flux:text class="text-zinc-900">{{ $submissionsCount }} / {{ $participantsCount }} {{ __('have submitted') }}</flux:text>
                 @else
-                    <flux:heading size="lg">{{ __('session.everyone_submitted') }}</flux:heading>
+                    <flux:heading size="lg" class="text-zinc-900">{{ __('session.everyone_submitted') }}</flux:heading>
                     <flux:text class="mt-1 text-sm text-zinc-600">
                         {{ __('session.start_reveal_ready') }}
                     </flux:text>
@@ -1076,7 +1076,7 @@
                             variant="ghost"
                             size="sm"
                             wire:click="openScoreBreakdown"
-                            class="!bg-zinc-900 !text-white hover:!bg-zinc-800"
+                            class="border border-zinc-300 !bg-white !text-zinc-900 hover:!bg-zinc-100"
                         >
                             {{ __('session.view_tag_breakdown') }}
                         </flux:button>
@@ -1088,8 +1088,8 @@
                             $roundPoints = ($revealRound->round_score ?? [])[$p->id] ?? 0;
                         @endphp
                         <li class="flex items-center justify-between rounded-lg bg-zinc-100 px-4 py-2">
-                            <span>{{ $p->display_name }}</span>
-                            <span class="font-medium">{{ $roundPoints }} {{ __('session.pts') }} ({{ __('session.total') }}: {{ $p->total_score }})</span>
+                            <span class="text-zinc-900">{{ $p->display_name }}</span>
+                            <span class="font-medium text-zinc-900">{{ $roundPoints }} {{ __('session.pts') }} ({{ __('session.total') }}: {{ $p->total_score }})</span>
                         </li>
                     @endforeach
                 </ul>
@@ -1100,18 +1100,23 @@
         </section>
     @endif
 
-    {{-- Host: setup drinks (only when session in setup) --}}
-    @can('update', $tastingSession)
-        @if ($tastingSession->status === 'setup')
+    {{-- Setup drinks (visible for everyone, actions host-only) --}}
+    @if ($tastingSession->status === 'setup')
         <section>
             <div class="flex items-center justify-between gap-4">
                 <flux:heading size="lg">{{ __('session.drinks') }}</flux:heading>
-                <flux:button wire:click="$set('showAddDrink', true)" variant="primary" size="sm">{{ __('session.add_drink') }}</flux:button>
+                <div class="flex items-center gap-2">
+                    <flux:button type="button" variant="ghost" size="sm" wire:click="openScoreBreakdown">{{ __('session.score_button') }}</flux:button>
+                    @can('update', $tastingSession)
+                        <flux:button wire:click="$set('showAddDrink', true)" variant="primary" size="sm">{{ __('session.add_drink') }}</flux:button>
+                    @endcan
+                </div>
             </div>
 
 
 
 
+            @can('update', $tastingSession)
             @if ($showAddDrink || $editing_drink_id)
                 <div class="mt-4 rounded-lg border border-zinc-200 p-4">
                     <flux:heading size="sm">{{ $editing_drink_id ? __('session.edit_drink') : __('session.new_drink') }}</flux:heading>
@@ -1128,6 +1133,7 @@
                     </form>
                 </div>
             @endif
+            @endcan
 
             <ul class="mt-4 space-y-2">
                 @forelse ($tastingSession->drinks as $drink)
@@ -1139,26 +1145,27 @@
                             <div>
                                 <span class="font-medium">{{ $drink->name }}</span>
                                 @if ($drink->year)
-                                    <span class="text-zinc-800">({{ $drink->year })</span>
+                                    <span class="text-zinc-800">({{ $drink->year }})</span>
                                 @endif
                                 @if ($drink->location)
                                     <div class="text-xs text-zinc-800">{{ $drink->location }}</div>
                                 @endif
                             </div>
                         </div>
-                        <div class="flex gap-2">
-                            <flux:button size="sm" variant="primary" wire:click="startRound({{ $drink->id }})">{{ __('Start round') }}</flux:button>
-                            <flux:button size="sm" wire:click="editDrink({{ $drink->id }})">{{ __('Edit') }}</flux:button>
-                            <flux:button size="sm" variant="danger" wire:click="deleteDrink({{ $drink->id }})" wire:confirm="{{ __('Delete this drink?') }}">{{ __('Delete') }}</flux:button>
-                        </div>
+                        @can('update', $tastingSession)
+                            <div class="flex gap-2">
+                                <flux:button size="sm" variant="primary" wire:click="startRound({{ $drink->id }})">{{ __('Start round') }}</flux:button>
+                                <flux:button size="sm" wire:click="editDrink({{ $drink->id }})">{{ __('Edit') }}</flux:button>
+                                <flux:button size="sm" variant="danger" wire:click="deleteDrink({{ $drink->id }})" wire:confirm="{{ __('Delete this drink?') }}">{{ __('Delete') }}</flux:button>
+                            </div>
+                        @endcan
                     </li>
                 @empty
                     <li class="rounded-lg border border-dashed border-zinc-300 p-4 text-center text-zinc-800">{{ __('session.no_drinks') }}</li>
                 @endforelse
             </ul>
         </section>
-        @endif
-    @endcan
+    @endif
 
     {{-- Reveal countdown overlay: 3, 2, 1 then reveal modal --}}
     <div
@@ -1373,6 +1380,27 @@
                                         </div>
                                     </div>
                                 </div>
+                                <div class="mt-4 rounded-lg border border-zinc-200 bg-zinc-50 p-3">
+                                    <h3 class="text-sm font-semibold text-zinc-900">{{ __('session.ratings') }}</h3>
+                                    @php $ratings = $roundData['ratings'] ?? []; @endphp
+                                    @if(!empty($ratings))
+                                        <div class="mt-2 space-y-2">
+                                            @foreach($ratings as $r)
+                                                <details class="rounded-md border border-zinc-200 bg-white px-3 py-2">
+                                                    <summary class="cursor-pointer list-none flex items-center justify-between text-sm text-zinc-900">
+                                                        <span class="font-medium">{{ $r['participant'] }}</span>
+                                                        <span class="font-semibold">{{ number_format((float) $r['score'], 1) }} / 10</span>
+                                                    </summary>
+                                                    @if(!empty($r['note']))
+                                                        <p class="mt-2 text-sm text-zinc-800">{{ $r['note'] }}</p>
+                                                    @endif
+                                                </details>
+                                            @endforeach
+                                        </div>
+                                    @else
+                                        <p class="mt-2 text-xs text-zinc-800">{{ __('session.no_ratings') }}</p>
+                                    @endif
+                                </div>
                             </div>
                         @endforeach
                     @else
@@ -1467,6 +1495,27 @@
                                     @endforelse
                                 </div>
                             </div>
+                        </div>
+                        <div class="mt-4 rounded-lg border border-zinc-200 bg-zinc-50 p-3">
+                            <h3 class="text-sm font-semibold text-zinc-900">{{ __('session.ratings') }}</h3>
+                            @php $ratings = $currentRoundBreakdown['ratings'] ?? []; @endphp
+                            @if(!empty($ratings))
+                                <div class="mt-2 space-y-2">
+                                    @foreach($ratings as $r)
+                                        <details class="rounded-md border border-zinc-200 bg-white px-3 py-2">
+                                            <summary class="cursor-pointer list-none flex items-center justify-between text-sm text-zinc-900">
+                                                <span class="font-medium">{{ $r['participant'] }}</span>
+                                                <span class="font-semibold">{{ number_format((float) $r['score'], 1) }} / 10</span>
+                                            </summary>
+                                            @if(!empty($r['note']))
+                                                <p class="mt-2 text-sm text-zinc-800">{{ $r['note'] }}</p>
+                                            @endif
+                                        </details>
+                                    @endforeach
+                                </div>
+                            @else
+                                <p class="mt-2 text-xs text-zinc-800">{{ __('session.no_ratings') }}</p>
+                            @endif
                         </div>
                     @endif
                 </div>
