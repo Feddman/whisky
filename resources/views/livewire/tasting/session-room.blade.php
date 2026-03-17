@@ -1187,7 +1187,7 @@
     >
         <div class="text-center">
             <p class="text-4xl font-bold text-amber-400 drop-shadow-lg md:text-6xl">Slàinte Mhath</p>
-            <p class="mt-2 text-xl text-white/90">🥃</p>
+            <p class="mt-2 text-7xl leading-none text-white/95 md:text-8xl">🥃</p>
         </div>
     </div>
 
