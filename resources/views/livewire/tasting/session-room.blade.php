@@ -375,7 +375,7 @@
 
                 <div class="mt-4">
                     <label class="block text-sm text-zinc-800 mb-1">{{ __('session.your_name') }}</label>
-                    <input x-model="avatarModalSeedName" type="text" class="w-full rounded-md border px-3 py-2" placeholder="Your display name" />
+                    <input x-model="avatarModalSeedName" type="text" class="w-full rounded-md border border-zinc-300 bg-white px-3 py-2 text-zinc-900 placeholder:text-zinc-500 focus:border-zinc-500 focus:outline-none" placeholder="Your display name" />
                     <div class="mt-2 text-right">
                         <button type="button" x-on:click.prevent="avatarModalOpen = false" class="text-sm text-zinc-800 mr-2">{{ __('session.close') }}</button>
                         <button type="button" x-on:click.prevent="(async () => { await $wire.call('updateParticipant', avatarModalParticipantId, avatarModalSeedName, avatarModalSeed); avatarModalOpen = false; })()" class="text-sm text-white px-3 py-1 rounded" style="background-color: #2563eb;">{{ __('session.save') }}</button>
