@@ -573,7 +573,7 @@
                         @endphp
                         <div>
                             <flux:heading size="sm">{{ __('session.nose_palate') }}</flux:heading>
-                            <flux:text class="text-zinc-800">{{ __('session.pick_up_to', ['max' => $tastingSession->max_taste_tags]) }}</flux:text>
+
                             @if(session('taste_tag_limit'))
                                 <div class="mt-2 text-sm text-rose-600">{{ session('taste_tag_limit') }}</div>
                             @endif
