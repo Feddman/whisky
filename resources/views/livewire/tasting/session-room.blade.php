@@ -518,12 +518,16 @@
                             <button
                                 type="button"
                                 wire:click="$set('formStep', {{ $stepNumber }})"
-                                class="inline-flex items-center gap-1 rounded-full border px-3 py-1 transition {{ $active ? 'border-flux-primary bg-flux-primary/10 text-flux-primary' : 'border-zinc-200 bg-white text-zinc-600 hover:border-zinc-300' }}"
+                                class="inline-flex items-center gap-1 rounded-full border px-3 py-1 transition {{ $active ? 'border-zinc-900 bg-zinc-900 text-white shadow-sm' : 'border-zinc-300 bg-white text-zinc-700 hover:border-zinc-400' }}"
+                                aria-current="{{ $active ? 'step' : 'false' }}"
                             >
-                                <span class="inline-flex h-4 w-4 items-center justify-center rounded-full bg-zinc-200 text-[10px] font-semibold text-zinc-800">{{ $stepNumber }}</span>
+                                <span class="inline-flex h-4 w-4 items-center justify-center rounded-full text-[10px] font-semibold {{ $active ? 'bg-white text-zinc-900' : 'bg-zinc-200 text-zinc-800' }}">{{ $stepNumber }}</span>
                                 <span>{{ $label }}</span>
                             </button>
                         @endforeach
+                    </div>
+                    <div class="text-xs font-semibold text-zinc-900">
+                        {{ __('session.current_step') }}: {{ __('session.step_of', ['current' => $formStep, 'total' => count($steps)]) }} - {{ $steps[$formStep] ?? '' }}
                     </div>
                     @if ($formStep === 1)
                         <div>
@@ -591,7 +595,7 @@
                                 $selectedNoseTags = \App\Models\TasteTag::whereIn('slug', $tasting_nose_tags ?? [])->orderBy('name')->get();
                             @endphp
                             @if($selectedNoseTags->isNotEmpty())
-                                <p class="mt-4 text-sm font-semibold text-zinc-900">{{ __('Your chosen tags') }}</p>
+                                <p class="mt-4 text-sm font-semibold text-zinc-900">{{ __('session.your_chosen_tags') }}</p>
                                 <div class="mt-2 flex flex-wrap gap-2">
                                     @foreach($selectedNoseTags as $tag)
                                         <span class="inline-flex items-center gap-1.5 px-3 py-1.5 text-sm font-semibold rounded-full bg-zinc-900 text-white border border-zinc-900 shadow-sm">
@@ -771,7 +775,7 @@
 
                                 @php $selectedTags = $this->selectedTasteTagModels; @endphp
                             @if($selectedTags->isNotEmpty())
-                                <p class="mt-4 text-sm font-semibold text-zinc-900">{{ __('Your chosen tags') }}</p>
+                                <p class="mt-4 text-sm font-semibold text-zinc-900">{{ __('session.your_chosen_tags') }}</p>
                                 <div class="mt-2 flex flex-wrap gap-2">
                                     @foreach($selectedTags as $tag)
                                         <span class="inline-flex items-center gap-1.5 px-3 py-1.5 text-sm font-semibold rounded-full bg-zinc-900 text-white border border-zinc-900 shadow-sm">
