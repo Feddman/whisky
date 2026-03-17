@@ -274,10 +274,16 @@
     @endif
 
     {{-- Players + emojis + Slàinte (always first so button is visible) --}}
-    <section class="rounded-xl border border-zinc-200 bg-zinc-50 p-4  ">
+        <section class="rounded-xl border border-zinc-300 bg-white p-4  ">
         <div class="flex items-center justify-between gap-2">
-            <flux:heading size="lg">{{ __('session.players') }}</flux:heading>
-            <flux:button type="button" variant="ghost" size="xs" wire:click="openScoreBreakdown">
+            <flux:heading size="lg" class="text-zinc-900">{{ __('session.players') }}</flux:heading>
+            <flux:button
+                type="button"
+                variant="ghost"
+                size="xs"
+                wire:click="openScoreBreakdown"
+                class="!bg-zinc-900 !text-white hover:!bg-zinc-800"
+            >
                 {{ __('session.view_tag_breakdown') }}
             </flux:button>
         </div>
@@ -449,7 +455,7 @@
 
     {{-- All submitted: host starts reveal, others wait --}}
     @if ($tastingSession->status === 'awaiting_reveal')
-        <section class="rounded-lg border border-zinc-200 bg-zinc-50 p-6">
+        <section class="rounded-lg border border-zinc-300 bg-white p-6">
             @can('update', $tastingSession)
                 <flux:heading size="lg">{{ __('session.everyone_submitted') }}</flux:heading>
                 <flux:text class="mt-2">{{ __('session.start_reveal_ready') }}</flux:text>
@@ -820,11 +826,11 @@
                 : null;
         @endphp
         <section class="space-y-8">
-            <div class="rounded-xl border border-zinc-200 bg-zinc-50 p-6 text-center">
+            <div class="rounded-xl border border-zinc-300 bg-white p-6 text-center">
                 {{-- reveal modal will show the drink image; keep original scoreboard below --}}
                 <div class="flex flex-col items-center gap-3 sm:flex-row sm:items-baseline sm:justify-between">
                     <div class="text-center sm:text-left">
-                        <flux:heading size="lg">{{ __('session.scoreboard') }}</flux:heading>
+                        <flux:heading size="lg" class="text-zinc-900">{{ __('session.scoreboard') }}</flux:heading>
                         <flux:text class="mt-1 text-zinc-800">
                             {{ __('session.this_round') }}: {{ $revealRound->team_total ?? 0 }} {{ __('session.points') }}
                             @if($avgRatingScoreboard !== null)
@@ -833,7 +839,13 @@
                         </flux:text>
                     </div>
                     <div class="flex flex-wrap justify-center gap-2">
-                        <flux:button type="button" variant="ghost" size="sm" wire:click="openScoreBreakdown">
+                        <flux:button
+                            type="button"
+                            variant="ghost"
+                            size="sm"
+                            wire:click="openScoreBreakdown"
+                            class="!bg-zinc-900 !text-white hover:!bg-zinc-800"
+                        >
                             {{ __('session.view_tag_breakdown') }}
                         </flux:button>
                     </div>

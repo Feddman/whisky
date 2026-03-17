@@ -24,13 +24,13 @@
                     </span>
                 @endif
             </a>
-            <div class="flex items-center gap-3">
+            <div class="flex items-center gap-3 text-zinc-900">
                 @auth
                     <flux:link href="{{ route('dashboard') }}" wire:navigate>{{ __('Dashboard') }}</flux:link>
                 @endif
                 @if (isset($tastingSessionId))
                     <div class="relative inline-block">
-                        <button id="shareToggle" type="button" class="text-sm inline-flex items-center gap-2 px-3 py-1 rounded-md border border-zinc-200 bg-white">Share</button>
+                        <button id="shareToggle" type="button" class="text-sm inline-flex items-center gap-2 px-3 py-1.5 rounded-md border border-zinc-300 bg-zinc-900 text-white hover:bg-zinc-800 hover:border-zinc-400">Share</button>
                         <div id="shareMenu" class="hidden absolute right-0 mt-2 w-56 rounded-md bg-white border border-zinc-200 shadow-lg p-3 z-50">
                             <div class="text-sm mb-2 font-medium">{{ __('session.share') }}</div>
                             <div class="flex flex-col gap-2">
