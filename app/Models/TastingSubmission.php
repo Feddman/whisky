@@ -11,8 +11,14 @@ class TastingSubmission extends Model
         'tasting_round_id',
         'session_participant_id',
         'color',
+        'color_viscosity',
         'taste_tags',
         'nose_tags',
+        'nose_intensity',
+        'nose_complexity',
+        'taste_mouthfeel',
+        'taste_finish',
+        'taste_development',
         'rating_score',
         'rating_note',
     ];
@@ -22,6 +28,12 @@ class TastingSubmission extends Model
         return [
             'taste_tags' => 'array',
             'nose_tags' => 'array',
+            'color_viscosity' => 'integer',
+            'nose_intensity' => 'integer',
+            'nose_complexity' => 'integer',
+            'taste_mouthfeel' => 'integer',
+            'taste_finish' => 'integer',
+            'taste_development' => 'integer',
             'rating_score' => 'float',
         ];
     }

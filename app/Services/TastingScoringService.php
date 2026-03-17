@@ -6,6 +6,15 @@ use App\Models\TastingRound;
 
 class TastingScoringService
 {
+    private const PROFILE_META = [
+        'profile:color_viscosity:' => ['name' => 'Viscositeit', 'emoji' => '💧'],
+        'profile:nose_intensity:' => ['name' => 'Neus intensiteit', 'emoji' => '👃'],
+        'profile:nose_complexity:' => ['name' => 'Neus complexiteit', 'emoji' => '🧠'],
+        'profile:taste_mouthfeel:' => ['name' => 'Mondgevoel', 'emoji' => '👄'],
+        'profile:taste_finish:' => ['name' => 'Afdronk', 'emoji' => '⏳'],
+        'profile:taste_development:' => ['name' => 'Ontwikkeling', 'emoji' => '🔄'],
+    ];
+
     /**
      * Compute round scores: for each tag, n participants chose it -> n*(n-1)/2 * 10 team points.
      * Per participant: sum over tags they chose of (count(tag)-1)*10.
@@ -18,18 +27,7 @@ class TastingScoringService
 
         foreach ($submissions as $sub) {
             $pid = $sub->session_participant_id;
-            $tags = $sub->taste_tags ?? [];
-
-            // Treat nose tags as separate pseudo-tags so it's clear in the breakdown.
-            foreach ($sub->nose_tags ?? [] as $noseSlug) {
-                $tags[] = 'nose:'.$noseSlug;
-            }
-
-            // Treat color as an extra pseudo-tag so matching colors also score points.
-            if (! empty($sub->color)) {
-                $colorSlug = 'color:'.mb_strtolower($sub->color);
-                $tags[] = $colorSlug;
-            }
+            $tags = $this->normalizedSubmissionTags($sub);
 
             $participantTags[$pid] = $tags;
 
@@ -85,14 +83,7 @@ class TastingScoringService
             $pid = $participant->id;
             $participants[$pid] = $participant;
 
-            $tags = $sub->taste_tags ?? [];
-            foreach ($sub->nose_tags ?? [] as $noseSlug) {
-                $tags[] = 'nose:'.$noseSlug;
-            }
-            if (! empty($sub->color)) {
-                $colorSlug = 'color:'.mb_strtolower($sub->color);
-                $tags[] = $colorSlug;
-            }
+            $tags = $this->normalizedSubmissionTags($sub);
             $participantTags[$pid] = $tags;
 
             foreach ($tags as $tag) {
@@ -131,6 +122,10 @@ class TastingScoringService
                     $label = ucfirst($raw);
                     $name = $label;
                     $emoji = '🎨';
+                } elseif (str_starts_with($slug, 'profile:')) {
+                    $meta = $this->profileMeta($slug);
+                    $name = $meta['name'];
+                    $emoji = $meta['emoji'];
                 } elseif (str_starts_with($slug, 'nose:')) {
                     $base = substr($slug, 5);
                     $model = $tagModels->get($base);
@@ -239,5 +234,49 @@ class TastingScoringService
             'tags' => $tagsDetail,
             'participants' => $participantsDetail,
         ];
+    }
+
+    private function normalizedSubmissionTags($sub): array
+    {
+        $tags = $sub->taste_tags ?? [];
+
+        foreach ($sub->nose_tags ?? [] as $noseSlug) {
+            $tags[] = 'nose:'.$noseSlug;
+        }
+
+        if (! empty($sub->color)) {
+            $tags[] = 'color:'.mb_strtolower($sub->color);
+        }
+
+        foreach ([
+            'color_viscosity',
+            'nose_intensity',
+            'nose_complexity',
+            'taste_mouthfeel',
+            'taste_finish',
+            'taste_development',
+        ] as $field) {
+            $value = $sub->{$field} ?? null;
+            if (! is_null($value) && $value >= 1 && $value <= 5) {
+                $tags[] = 'profile:'.$field.':'.$value;
+            }
+        }
+
+        return $tags;
+    }
+
+    private function profileMeta(string $slug): array
+    {
+        foreach (self::PROFILE_META as $prefix => $meta) {
+            if (str_starts_with($slug, $prefix)) {
+                $value = substr($slug, strlen($prefix));
+                return [
+                    'name' => $meta['name'].': '.$value.'/5',
+                    'emoji' => $meta['emoji'],
+                ];
+            }
+        }
+
+        return ['name' => $slug, 'emoji' => '🎚️'];
     }
 }

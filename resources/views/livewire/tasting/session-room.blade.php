@@ -567,6 +567,16 @@
 
                             <div class="mt-2 text-xs text-zinc-800">{{ __('session.selected') }}: <strong>{{ $tasting_color ?: __('session.none_selected') }}</strong></div>
 
+                            <div class="mt-5 rounded-lg border border-zinc-300 bg-white p-4">
+                                <label class="block text-sm font-semibold text-zinc-900">{{ __('session.viscosity') }}</label>
+                                <div class="mt-2 flex items-center justify-between text-xs text-zinc-800">
+                                    <span>{{ __('session.thin') }}</span>
+                                    <span class="font-semibold">{{ $color_viscosity ?? '-' }}/5</span>
+                                    <span>{{ __('session.syrupy') }}</span>
+                                </div>
+                                <input type="range" min="1" max="5" step="1" wire:model.live="color_viscosity" class="mt-2 w-full accent-zinc-900" />
+                            </div>
+
                             <flux:button type="button" variant="primary" class="mt-4" wire:click="$set('formStep', 2)">{{ __('session.next') }}</flux:button>
                         </div>
                     @elseif ($formStep === 2)
@@ -591,6 +601,26 @@
                                 <div class="mt-2 text-sm text-rose-600">{{ session('taste_tag_limit') }}</div>
                             @endif
                             <div class="mt-3 text-sm text-zinc-800">{{ __('session.pick_up_to', ['max' => $maxTags]) }} — <strong>{{ $noseSelectedCount }}</strong> {{ __('session.selected') }}</div>
+                            <div class="mt-4 grid gap-3 sm:grid-cols-2">
+                                <div class="rounded-lg border border-zinc-300 bg-white p-3">
+                                    <label class="block text-sm font-semibold text-zinc-900">{{ __('session.nose_intensity') }}</label>
+                                    <div class="mt-1 flex items-center justify-between text-xs text-zinc-800">
+                                        <span>{{ __('session.mild') }}</span>
+                                        <span class="font-semibold">{{ $nose_intensity ?? '-' }}/5</span>
+                                        <span>{{ __('session.sharp') }}</span>
+                                    </div>
+                                    <input type="range" min="1" max="5" step="1" wire:model.live="nose_intensity" class="mt-2 w-full accent-zinc-900" />
+                                </div>
+                                <div class="rounded-lg border border-zinc-300 bg-white p-3">
+                                    <label class="block text-sm font-semibold text-zinc-900">{{ __('session.nose_complexity') }}</label>
+                                    <div class="mt-1 flex items-center justify-between text-xs text-zinc-800">
+                                        <span>{{ __('session.simple') }}</span>
+                                        <span class="font-semibold">{{ $nose_complexity ?? '-' }}/5</span>
+                                        <span>{{ __('session.complex') }}</span>
+                                    </div>
+                                    <input type="range" min="1" max="5" step="1" wire:model.live="nose_complexity" class="mt-2 w-full accent-zinc-900" />
+                                </div>
+                            </div>
                             @php
                                 $selectedNoseTags = \App\Models\TasteTag::whereIn('slug', $tasting_nose_tags ?? [])->orderBy('name')->get();
                             @endphp
@@ -744,6 +774,35 @@
                                 <div class="mt-2 text-sm text-rose-600">{{ session('taste_tag_limit') }}</div>
                             @endif
                             <div class="mt-3 text-sm text-zinc-800">{{ __('session.pick_up_to', ['max' => $maxTags]) }} — <strong>{{ $selectedCount }}</strong> {{ __('session.selected') }}</div>
+                            <div class="mt-4 grid gap-3 sm:grid-cols-3">
+                                <div class="rounded-lg border border-zinc-300 bg-white p-3">
+                                    <label class="block text-sm font-semibold text-zinc-900">{{ __('session.mouthfeel') }}</label>
+                                    <div class="mt-1 flex items-center justify-between text-xs text-zinc-800">
+                                        <span>{{ __('session.thin') }}</span>
+                                        <span class="font-semibold">{{ $taste_mouthfeel ?? '-' }}/5</span>
+                                        <span>{{ __('session.syrupy') }}</span>
+                                    </div>
+                                    <input type="range" min="1" max="5" step="1" wire:model.live="taste_mouthfeel" class="mt-2 w-full accent-zinc-900" />
+                                </div>
+                                <div class="rounded-lg border border-zinc-300 bg-white p-3">
+                                    <label class="block text-sm font-semibold text-zinc-900">{{ __('session.finish') }}</label>
+                                    <div class="mt-1 flex items-center justify-between text-xs text-zinc-800">
+                                        <span>{{ __('session.short') }}</span>
+                                        <span class="font-semibold">{{ $taste_finish ?? '-' }}/5</span>
+                                        <span>{{ __('session.long') }}</span>
+                                    </div>
+                                    <input type="range" min="1" max="5" step="1" wire:model.live="taste_finish" class="mt-2 w-full accent-zinc-900" />
+                                </div>
+                                <div class="rounded-lg border border-zinc-300 bg-white p-3">
+                                    <label class="block text-sm font-semibold text-zinc-900">{{ __('session.development') }}</label>
+                                    <div class="mt-1 flex items-center justify-between text-xs text-zinc-800">
+                                        <span>{{ __('session.linear') }}</span>
+                                        <span class="font-semibold">{{ $taste_development ?? '-' }}/5</span>
+                                        <span>{{ __('session.changeable') }}</span>
+                                    </div>
+                                    <input type="range" min="1" max="5" step="1" wire:model.live="taste_development" class="mt-2 w-full accent-zinc-900" />
+                                </div>
+                            </div>
                             <div class="mt-3">
                                 <input
                                     type="text"
@@ -940,6 +999,7 @@
                             @if($avgRatingScoreboard !== null)
                                 · {{ __('session.avg_rating') }}: {{ number_format($avgRatingScoreboard, 1) }} / 10
                             @endif
+                            · {{ __('session.including_slider_matches') }}
                         </flux:text>
                     </div>
                     <div class="flex flex-wrap justify-center gap-2">

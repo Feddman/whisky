@@ -54,9 +54,21 @@ class SessionRoom extends Component
 
     public string $tasting_color = '';
 
+    public ?int $color_viscosity = null;
+
     public array $tasting_nose_tags = [];
 
+    public ?int $nose_intensity = null;
+
+    public ?int $nose_complexity = null;
+
     public array $tasting_tags = [];
+
+    public ?int $taste_mouthfeel = null;
+
+    public ?int $taste_finish = null;
+
+    public ?int $taste_development = null;
 
     /** Manual tag search inputs for nose/taste steps. */
     public string $nose_tag_search = '';
@@ -183,7 +195,12 @@ class SessionRoom extends Component
         ]);
         broadcast(new RoundStarted($this->tastingSession->id, $round->id))->toOthers();
         $this->tastingSession->refresh();
-        $this->reset(['formStep', 'tasting_color', 'tasting_nose_tags', 'tasting_tags', 'nose_tag_search', 'taste_tag_search', 'rating_score', 'rating_note']);
+        $this->reset([
+            'formStep', 'tasting_color', 'color_viscosity',
+            'tasting_nose_tags', 'nose_intensity', 'nose_complexity',
+            'tasting_tags', 'taste_mouthfeel', 'taste_finish', 'taste_development',
+            'nose_tag_search', 'taste_tag_search', 'rating_score', 'rating_note',
+        ]);
     }
 
     public function submitTasting(): void
@@ -196,10 +213,16 @@ class SessionRoom extends Component
         $maxTags = $this->tastingSession->max_taste_tags;
         $this->validate([
             'tasting_color' => ['nullable', 'string', 'max:100'],
+            'color_viscosity' => ['required', 'integer', 'between:1,5'],
             'tasting_nose_tags' => ['array', 'max:'.$maxTags],
             'tasting_nose_tags.*' => ['string', 'exists:taste_tags,slug'],
+            'nose_intensity' => ['required', 'integer', 'between:1,5'],
+            'nose_complexity' => ['required', 'integer', 'between:1,5'],
             'tasting_tags' => ['array', 'max:'.$maxTags],
             'tasting_tags.*' => ['string', 'exists:taste_tags,slug'],
+            'taste_mouthfeel' => ['required', 'integer', 'between:1,5'],
+            'taste_finish' => ['required', 'integer', 'between:1,5'],
+            'taste_development' => ['required', 'integer', 'between:1,5'],
             // rating_score is stored as a 1–10 scale (optioneel)
             'rating_score' => ['nullable', 'numeric', 'min:1', 'max:10'],
             'rating_note' => ['nullable', 'string', 'max:1000'],
@@ -212,8 +235,14 @@ class SessionRoom extends Component
         ]);
 
         $submission->color = $this->tasting_color ?: null;
+        $submission->color_viscosity = $this->color_viscosity;
         $submission->nose_tags = $this->tasting_nose_tags;
+        $submission->nose_intensity = $this->nose_intensity;
+        $submission->nose_complexity = $this->nose_complexity;
         $submission->taste_tags = $this->tasting_tags;
+        $submission->taste_mouthfeel = $this->taste_mouthfeel;
+        $submission->taste_finish = $this->taste_finish;
+        $submission->taste_development = $this->taste_development;
         $submission->rating_score = $this->rating_score;
         $submission->rating_note = $this->rating_note ?: null;
         $submission->save();
@@ -229,7 +258,12 @@ class SessionRoom extends Component
 
         $this->tastingSession->refresh();
         $this->editingSubmission = false;
-        $this->reset(['formStep', 'tasting_color', 'tasting_nose_tags', 'tasting_tags', 'nose_tag_search', 'taste_tag_search', 'rating_score', 'rating_note']);
+        $this->reset([
+            'formStep', 'tasting_color', 'color_viscosity',
+            'tasting_nose_tags', 'nose_intensity', 'nose_complexity',
+            'tasting_tags', 'taste_mouthfeel', 'taste_finish', 'taste_development',
+            'nose_tag_search', 'taste_tag_search', 'rating_score', 'rating_note',
+        ]);
     }
 
     // Toggle a taste tag for the current participant, enforcing the max tags limit
@@ -394,8 +428,14 @@ class SessionRoom extends Component
         }
 
         $this->tasting_color = $submission->color ?? '';
+        $this->color_viscosity = $submission->color_viscosity;
         $this->tasting_nose_tags = $submission->nose_tags ?? [];
+        $this->nose_intensity = $submission->nose_intensity;
+        $this->nose_complexity = $submission->nose_complexity;
         $this->tasting_tags = $submission->taste_tags ?? [];
+        $this->taste_mouthfeel = $submission->taste_mouthfeel;
+        $this->taste_finish = $submission->taste_finish;
+        $this->taste_development = $submission->taste_development;
         $this->rating_score = $submission->rating_score;
         $this->rating_note = $submission->rating_note ?? '';
         $this->nose_tag_search = '';
