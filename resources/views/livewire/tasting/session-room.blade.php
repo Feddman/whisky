@@ -1,5 +1,5 @@
 <div
-    class="mx-auto max-w-4xl space-y-8"
+    class="tasting-room mx-auto max-w-4xl space-y-8"
     x-data="{
         participantEmojis: {},
         showEmojiPicker: false,
@@ -121,6 +121,15 @@
             for (var i = 0; i < 12; i++) arr.push(Math.random().toString(36).substring(2, 9));
             this.avatarSeeds = arr;
         },
+        goToStep(step) {
+            var self = this;
+            $wire.set('formStep', step);
+            setTimeout(function() {
+                if (self.$refs.wizardNav) {
+                    self.$refs.wizardNav.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                }
+            }, 120);
+        },
         startSmoke() {
             if (this.smokeRunning) return;
             var canvas = this.$refs.smokeCanvas;
@@ -227,6 +236,19 @@
     }"
 >
     <style>
+        .tasting-room input[type="text"],
+        .tasting-room input[type="number"],
+        .tasting-room input[type="email"],
+        .tasting-room input[type="password"],
+        .tasting-room input[type="search"],
+        .tasting-room textarea,
+        .tasting-room select {
+            color: #111827 !important;
+        }
+        .tasting-room input::placeholder,
+        .tasting-room textarea::placeholder {
+            color: #6b7280 !important;
+        }
         @keyframes emoji-pulse {
             0% { transform: scale(1); opacity: 1; }
             50% { transform: scale(1.3); opacity: 1; }
@@ -487,8 +509,8 @@
                     {{ __('session.reveal_countdown') }}
                 </button>
             @else
-                <flux:heading size="lg">{{ __('session.waiting_host_reveal') }}</flux:heading>
-                <flux:text>{{ __('session.everyone_submitted_host') }}</flux:text>
+                <flux:heading size="lg" class="text-zinc-900">{{ __('session.waiting_host_reveal') }}</flux:heading>
+                <flux:text class="text-zinc-900">{{ __('session.everyone_submitted_host') }}</flux:text>
             @endcan
         </section>
     @endif
@@ -505,8 +527,8 @@
         @if ($hasSubmitted && ! $this->editingSubmission)
             <section class="rounded-lg border border-zinc-200 bg-zinc-50 p-6">
                 @if ($tastingSession->status === 'in_progress')
-                    <flux:heading size="lg">{{ __('Waiting for others') }}</flux:heading>
-                    <flux:text>{{ $submissionsCount }} / {{ $participantsCount }} {{ __('have submitted') }}</flux:text>
+                    <flux:heading size="lg" class="text-zinc-900">{{ __('Waiting for others') }}</flux:heading>
+                    <flux:text class="text-zinc-900">{{ $submissionsCount }} / {{ $participantsCount }} {{ __('have submitted') }}</flux:text>
                 @else
                     <flux:heading size="lg">{{ __('session.everyone_submitted') }}</flux:heading>
                     <flux:text class="mt-1 text-sm text-zinc-600">
@@ -528,7 +550,7 @@
                 <flux:heading size="lg">{{ __('session.tasting_notes') }}</flux:heading>
                 <form wire:submit="submitTasting" class="mt-4 space-y-6">
                     {{-- Wizard steps header --}}
-                    <div class="flex flex-wrap items-center gap-2 text-xs font-medium text-zinc-600">
+                    <div x-ref="wizardNav" class="flex flex-wrap items-center gap-2 text-xs font-medium text-zinc-600">
                         @php
                             $steps = [
                                 1 => __('session.color_optional'),
@@ -581,7 +603,7 @@
                                         aria-pressed="{{ $isSelected ? 'true' : 'false' }}"
                                     >
                                         <span class="inline-block w-10 h-6" style="background-color: {{ $c['hex'] }};"></span>
-                                        <span class="truncate">{{ $c['name'] }}</span>
+                                        <span class="truncate text-zinc-900">{{ $c['name'] }}</span>
                                         @if($isSelected)
                                             <span class="absolute -top-2 -right-2 bg-sky-600 hover:bg-sky-500 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs">✓</span>
                                         @endif
@@ -601,7 +623,16 @@
                                 <input type="range" min="1" max="5" step="1" wire:model.live="color_viscosity" class="mt-2 w-full accent-zinc-900" />
                             </div>
 
-                            <flux:button type="button" variant="primary" class="mt-4" wire:click="$set('formStep', 2)">{{ __('session.next') }}</flux:button>
+                            <div class="mt-6 flex justify-end">
+                                <flux:button
+                                    type="button"
+                                    variant="primary"
+                                    class="min-w-36 justify-center !bg-zinc-900 !text-white shadow-lg hover:!bg-zinc-800"
+                                    x-on:click.prevent="goToStep(2)"
+                                >
+                                    {{ __('session.next') }}
+                                </flux:button>
+                            </div>
                         </div>
                     @elseif ($formStep === 2)
                         @php
@@ -678,7 +709,7 @@
                                         @endphp
                                         <button
                                             type="button"
-                                            wire:click="toggleNoseTag('{{ $tag->slug }}')"
+                                            wire:click="selectNoseTagFromSearch('{{ $tag->slug }}')"
                                             class="inline-flex items-center gap-2 px-3 py-2 text-sm border rounded-full transition {{ $isSelected ? 'bg-zinc-900 text-white border-zinc-900 font-semibold' : 'bg-white border-zinc-300 text-zinc-900' }} {{ $disabled ? 'opacity-50 pointer-events-none' : 'hover:shadow' }}"
                                         >
                                             <span>{{ $tag->name }}</span>
@@ -771,9 +802,16 @@
                                 </div>
                             @endif
 
-                            <div class="mt-6 flex gap-2">
+                            <div class="mt-6 flex items-center justify-between gap-2">
                                 <flux:button type="button" variant="ghost" wire:click="$set('formStep', 1)">{{ __('session.back') }}</flux:button>
-                                <flux:button type="button" variant="primary" wire:click="$set('formStep', 3)">{{ __('session.next') }}</flux:button>
+                                <flux:button
+                                    type="button"
+                                    variant="primary"
+                                    class="min-w-36 justify-center !bg-zinc-900 !text-white shadow-lg hover:!bg-zinc-800"
+                                    x-on:click.prevent="goToStep(3)"
+                                >
+                                    {{ __('session.next') }}
+                                </flux:button>
                             </div>
                         </div>
                     @elseif ($formStep === 3)
@@ -843,7 +881,7 @@
                                         @endphp
                                         <button
                                             type="button"
-                                            wire:click="toggleTasteTag('{{ $tag->slug }}')"
+                                            wire:click="selectTasteTagFromSearch('{{ $tag->slug }}')"
                                             class="inline-flex items-center gap-2 px-3 py-2 text-sm border rounded-full transition {{ $isSelected ? 'bg-zinc-900 text-white border-zinc-900 font-semibold' : 'bg-white border-zinc-300 text-zinc-900' }} {{ $disabled ? 'opacity-50 pointer-events-none' : 'hover:shadow' }}"
                                         >
                                             <span>{{ $tag->name }}</span>
@@ -951,9 +989,16 @@
                                 </div>
                             @endif
 
-                            <div class="mt-6 flex gap-2">
+                            <div class="mt-6 flex items-center justify-between gap-2">
                                 <flux:button type="button" variant="ghost" wire:click="$set('formStep', 2)">{{ __('session.back') }}</flux:button>
-                                <flux:button type="button" variant="primary" wire:click="$set('formStep', 4)">{{ __('session.next') }}</flux:button>
+                                <flux:button
+                                    type="button"
+                                    variant="primary"
+                                    class="min-w-36 justify-center !bg-zinc-900 !text-white shadow-lg hover:!bg-zinc-800"
+                                    x-on:click.prevent="goToStep(4)"
+                                >
+                                    {{ __('session.next') }}
+                                </flux:button>
                             </div>
                         </div>
                     @else
@@ -991,9 +1036,9 @@
                                 <flux:textarea wire:model="rating_note" :label="__('session.rating_note')" rows="3" />
                             </div>
 
-                            <div class="mt-6 flex gap-2">
+                            <div class="mt-6 flex items-center justify-between gap-2">
                                 <flux:button type="button" variant="ghost" wire:click="$set('formStep', 3)">{{ __('session.back') }}</flux:button>
-                                <flux:button type="submit" variant="primary">{{ __('session.submit') }}</flux:button>
+                                <flux:button type="submit" variant="primary" class="min-w-36 justify-center !bg-zinc-900 !text-white shadow-lg hover:!bg-zinc-800">{{ __('session.submit') }}</flux:button>
                             </div>
                         </div>
                     @endif
@@ -1071,10 +1116,10 @@
                 <div class="mt-4 rounded-lg border border-zinc-200 p-4">
                     <flux:heading size="sm">{{ $editing_drink_id ? __('session.edit_drink') : __('session.new_drink') }}</flux:heading>
                     <form wire:submit="{{ $editing_drink_id ? 'updateDrink' : 'addDrink' }}" class="mt-3 flex flex-col gap-3">
-                        <flux:input wire:model="drink_name" :label="__('session.name')" required />
-                        <flux:input wire:model="drink_year" :label="__('session.year')" />
-                        <flux:input wire:model="drink_location" :label="__('session.location')" />
-                        <flux:textarea wire:model="drink_description" :label="__('session.description')" rows="3" />
+                        <flux:input wire:model="drink_name" :label="__('session.name')" class="!text-zinc-900" required />
+                        <flux:input wire:model="drink_year" :label="__('session.year')" class="!text-zinc-900" />
+                        <flux:input wire:model="drink_location" :label="__('session.location')" class="!text-zinc-900" />
+                        <flux:textarea wire:model="drink_description" :label="__('session.description')" class="!text-zinc-900" rows="3" />
                         <flux:input wire:model="drink_image" type="file" accept="image/*" :label="__('session.image')" />
                         <div class="flex gap-2">
                             <flux:button type="submit" variant="primary">{{ $editing_drink_id ? __('session.save') : __('session.add') }}</flux:button>

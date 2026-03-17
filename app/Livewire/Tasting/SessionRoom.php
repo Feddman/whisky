@@ -325,6 +325,18 @@ class SessionRoom extends Component
         $this->tasting_nose_tags = array_values(array_merge($selected, [$slug]));
     }
 
+    public function selectNoseTagFromSearch(string $slug): void
+    {
+        $this->toggleNoseTag($slug);
+        $this->nose_tag_search = '';
+    }
+
+    public function selectTasteTagFromSearch(string $slug): void
+    {
+        $this->toggleTasteTag($slug);
+        $this->taste_tag_search = '';
+    }
+
     #[Computed]
     public function getCurrentParticipantProperty(): ?SessionParticipant
     {
