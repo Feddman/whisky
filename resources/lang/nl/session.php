@@ -94,4 +94,6 @@ return [
     'leave_confirm' => 'Weet u zeker dat u de sessie wilt verlaten?',
     'leave_session' => 'Sessie verlaten',
     'reopen_form' => 'Formulier opnieuw openen',
+    'kick_player' => 'Speler verwijderen',
+    'kick_player_confirm' => 'Weet je zeker dat je :name uit de sessie wilt zetten?',
 ];

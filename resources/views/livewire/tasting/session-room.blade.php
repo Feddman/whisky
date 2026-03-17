@@ -303,6 +303,18 @@
                         @if(($current && $current->id === $p->id) || (auth()->check() && auth()->user()->can('update', $tastingSession)))
                             <button type="button" data-participant-id="{{ $p->id }}" data-avatar-seed="{{ e($p->avatar_seed ?? $p->display_name) }}" data-display-name="{{ e($p->display_name) }}" x-on:click.prevent="openAvatarModalFromEl($event.currentTarget)" class="text-xs text-zinc-800 hover:underline">{{ __('join.change') }}</button>
                         @endif
+                        @can('update', $tastingSession)
+                            @if(! $p->is_host)
+                                <button
+                                    type="button"
+                                    wire:click="kickParticipant({{ $p->id }})"
+                                    wire:confirm="{{ __('session.kick_player_confirm', ['name' => $p->display_name]) }}"
+                                    class="text-xs text-rose-700 hover:underline"
+                                >
+                                    {{ __('session.kick_player') }}
+                                </button>
+                            @endif
+                        @endcan
                     </div>
                 </div>
             @endforeach

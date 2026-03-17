@@ -10,6 +10,7 @@ use App\Events\RoundStarted;
 use App\Events\SlaintePressed;
 use App\Events\SlainteSuccess;
 use App\Events\SubmissionReceived;
+use App\Events\PlayerLeft;
 use App\Models\SessionParticipant;
 use App\Models\TastingSession;
 use App\Models\TastingSubmission;
@@ -97,7 +98,7 @@ class SessionRoom extends Component
                 abort(403, __('Please join the session first.'));
             }
             $participant = SessionParticipant::find($participantId);
-            if (! $participant || $participant->tasting_session_id !== $tastingSession->id) {
+            if (! $participant || $participant->tasting_session_id !== $tastingSession->id || $participant->left_at !== null) {
                 abort(403, __('You are not in this session.'));
             }
         }
@@ -316,7 +317,38 @@ class SessionRoom extends Component
             return null;
         }
         $p = SessionParticipant::find($id);
-        return $p && $p->tasting_session_id === $this->tastingSession->id ? $p : null;
+        return $p && $p->tasting_session_id === $this->tastingSession->id && $p->left_at === null ? $p : null;
+    }
+
+    public function kickParticipant(int $participantId): void
+    {
+        $this->authorize('update', $this->tastingSession);
+
+        $participant = $this->tastingSession->participants()
+            ->whereNull('left_at')
+            ->find($participantId);
+
+        if (! $participant || $participant->is_host) {
+            return;
+        }
+
+        $participant->update(['left_at' => now()]);
+
+        $round = $this->getCurrentRoundProperty();
+        if ($round && in_array($this->tastingSession->status, ['in_progress', 'awaiting_reveal'], true)) {
+            $count = $round->submissions()->count();
+            $total = $this->tastingSession->activeParticipants()->count();
+
+            broadcast(new SubmissionReceived($this->tastingSession->id, $count, $total))->toOthers();
+
+            if ($count >= $total) {
+                $this->tastingSession->update(['status' => 'awaiting_reveal']);
+                broadcast(new EveryoneSubmitted($this->tastingSession->id))->toOthers();
+            }
+        }
+
+        broadcast(new PlayerLeft($this->tastingSession->id, $participant->id))->toOthers();
+        $this->tastingSession->refresh();
     }
 
     #[Computed]
