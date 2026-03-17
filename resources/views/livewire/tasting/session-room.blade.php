@@ -103,6 +103,16 @@
                 self.avatarModalOpen = true;
                 self.autoOpenAvatar = false;
             }
+
+            if (window.Livewire && Livewire.on) {
+                Livewire.on('wizard-step-changed', function() {
+                    self.$nextTick(function() {
+                        if (self.$refs.wizardNav) {
+                            self.$refs.wizardNav.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                        }
+                    });
+                });
+            }
         },
         openAvatarModalFromEl(el) {
             var d = el.dataset;
@@ -120,15 +130,6 @@
             var arr = [];
             for (var i = 0; i < 12; i++) arr.push(Math.random().toString(36).substring(2, 9));
             this.avatarSeeds = arr;
-        },
-        goToStep(step) {
-            var self = this;
-            $wire.set('formStep', step);
-            setTimeout(function() {
-                if (self.$refs.wizardNav) {
-                    self.$refs.wizardNav.scrollIntoView({ behavior: 'smooth', block: 'start' });
-                }
-            }, 120);
         },
         startSmoke() {
             if (this.smokeRunning) return;
@@ -628,7 +629,7 @@
                                     type="button"
                                     variant="primary"
                                     class="min-w-36 justify-center !bg-zinc-900 !text-white shadow-lg hover:!bg-zinc-800"
-                                    x-on:click.prevent="goToStep(2)"
+                                    wire:click="goToStep(2)"
                                 >
                                     {{ __('session.next') }}
                                 </flux:button>
@@ -808,7 +809,7 @@
                                     type="button"
                                     variant="primary"
                                     class="min-w-36 justify-center !bg-zinc-900 !text-white shadow-lg hover:!bg-zinc-800"
-                                    x-on:click.prevent="goToStep(3)"
+                                    wire:click="goToStep(3)"
                                 >
                                     {{ __('session.next') }}
                                 </flux:button>
@@ -995,7 +996,7 @@
                                     type="button"
                                     variant="primary"
                                     class="min-w-36 justify-center !bg-zinc-900 !text-white shadow-lg hover:!bg-zinc-800"
-                                    x-on:click.prevent="goToStep(4)"
+                                    wire:click="goToStep(4)"
                                 >
                                     {{ __('session.next') }}
                                 </flux:button>
@@ -1033,7 +1034,12 @@
                             </div>
 
                             <div class="mt-4">
-                                <flux:textarea wire:model="rating_note" :label="__('session.rating_note')" rows="3" />
+                                <flux:textarea
+                                    wire:model="rating_note"
+                                    :label="__('session.rating_note')"
+                                    rows="3"
+                                    class="!border-zinc-400 !text-zinc-900"
+                                />
                             </div>
 
                             <div class="mt-6 flex items-center justify-between gap-2">

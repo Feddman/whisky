@@ -286,6 +286,30 @@ class SessionRoom extends Component
         ]);
     }
 
+    public function goToStep(int $step): void
+    {
+        // Validate required sliders before moving forward.
+        if ($step === 2) {
+            $this->validate([
+                'color_viscosity' => ['required', 'integer', 'between:1,5'],
+            ]);
+        } elseif ($step === 3) {
+            $this->validate([
+                'nose_intensity' => ['required', 'integer', 'between:1,5'],
+                'nose_complexity' => ['required', 'integer', 'between:1,5'],
+            ]);
+        } elseif ($step === 4) {
+            $this->validate([
+                'taste_mouthfeel' => ['required', 'integer', 'between:1,5'],
+                'taste_finish' => ['required', 'integer', 'between:1,5'],
+                'taste_development' => ['required', 'integer', 'between:1,5'],
+            ]);
+        }
+
+        $this->formStep = $step;
+        $this->dispatch('wizard-step-changed');
+    }
+
     // Toggle a taste tag for the current participant, enforcing the max tags limit
     public function toggleTasteTag(string $slug): void
     {
