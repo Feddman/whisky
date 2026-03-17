@@ -27,6 +27,7 @@ return [
     'rating_note' => 'Korte omschrijving',
     'pick_up_to' => 'Kies maximaal :max tags.',
     'choose_category' => 'Kies een categorie',
+    'search_tag' => 'Zoek tag',
     'back' => 'Terug',
     'submit' => 'Verstuur',
     'reveal' => 'Onthulling',

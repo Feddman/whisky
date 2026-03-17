@@ -587,12 +587,28 @@
                                 <div class="mt-2 text-sm text-rose-600">{{ session('taste_tag_limit') }}</div>
                             @endif
                             <div class="mt-3 text-sm text-zinc-800">{{ __('session.pick_up_to', ['max' => $maxTags]) }} — <strong>{{ $noseSelectedCount }}</strong> {{ __('session.selected') }}</div>
+                            @php
+                                $selectedNoseTags = \App\Models\TasteTag::whereIn('slug', $tasting_nose_tags ?? [])->orderBy('name')->get();
+                            @endphp
+                            @if($selectedNoseTags->isNotEmpty())
+                                <p class="mt-4 text-sm font-semibold text-zinc-900">{{ __('Your chosen tags') }}</p>
+                                <div class="mt-2 flex flex-wrap gap-2">
+                                    @foreach($selectedNoseTags as $tag)
+                                        <span class="inline-flex items-center gap-1.5 px-3 py-1.5 text-sm font-semibold rounded-full bg-zinc-900 text-white border border-zinc-900 shadow-sm">
+                                            {{ $tag->name }}
+                                            <button type="button" wire:click="toggleNoseTag('{{ $tag->slug }}')" class="rounded-full p-0.5 hover:bg-white/20" aria-label="{{ __('Remove') }} {{ $tag->name }}">
+                                                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                                            </button>
+                                        </span>
+                                    @endforeach
+                                </div>
+                            @endif
                             <div class="mt-3">
                                 <input
                                     type="text"
                                     wire:model.live.debounce.300ms="nose_tag_search"
                                     class="w-full rounded-lg border border-zinc-300 bg-white px-3 py-2 text-sm text-zinc-900 placeholder:text-zinc-600 focus:border-zinc-500 focus:outline-none"
-                                    placeholder="{{ __('Search tags') }}"
+                                    placeholder="{{ __('session.search_tag') }}"
                                 />
                             </div>
                             @if($noseSearchResults->isNotEmpty())
@@ -605,9 +621,12 @@
                                         <button
                                             type="button"
                                             wire:click="toggleNoseTag('{{ $tag->slug }}')"
-                                            class="inline-flex items-center gap-2 px-3 py-2 text-sm border rounded-full transition {{ $isSelected ? 'bg-zinc-900 text-white border-zinc-900' : 'bg-white border-zinc-300 text-zinc-900' }} {{ $disabled ? 'opacity-50 pointer-events-none' : 'hover:shadow' }}"
+                                            class="inline-flex items-center gap-2 px-3 py-2 text-sm border rounded-full transition {{ $isSelected ? 'bg-zinc-900 text-white border-zinc-900 font-semibold' : 'bg-white border-zinc-300 text-zinc-900' }} {{ $disabled ? 'opacity-50 pointer-events-none' : 'hover:shadow' }}"
                                         >
                                             <span>{{ $tag->name }}</span>
+                                            @if($isSelected)
+                                                <span class="inline-flex bg-white text-zinc-900 rounded-full w-4 h-4 items-center justify-center text-[10px]">✓</span>
+                                            @endif
                                         </button>
                                     @endforeach
                                 </div>
@@ -726,7 +745,7 @@
                                     type="text"
                                     wire:model.live.debounce.300ms="taste_tag_search"
                                     class="w-full rounded-lg border border-zinc-300 bg-white px-3 py-2 text-sm text-zinc-900 placeholder:text-zinc-600 focus:border-zinc-500 focus:outline-none"
-                                    placeholder="{{ __('Search tags') }}"
+                                    placeholder="{{ __('session.search_tag') }}"
                                 />
                             </div>
                             @if($tasteSearchResults->isNotEmpty())
@@ -739,9 +758,12 @@
                                         <button
                                             type="button"
                                             wire:click="toggleTasteTag('{{ $tag->slug }}')"
-                                            class="inline-flex items-center gap-2 px-3 py-2 text-sm border rounded-full transition {{ $isSelected ? 'bg-zinc-900 text-white border-zinc-900' : 'bg-white border-zinc-300 text-zinc-900' }} {{ $disabled ? 'opacity-50 pointer-events-none' : 'hover:shadow' }}"
+                                            class="inline-flex items-center gap-2 px-3 py-2 text-sm border rounded-full transition {{ $isSelected ? 'bg-zinc-900 text-white border-zinc-900 font-semibold' : 'bg-white border-zinc-300 text-zinc-900' }} {{ $disabled ? 'opacity-50 pointer-events-none' : 'hover:shadow' }}"
                                         >
                                             <span>{{ $tag->name }}</span>
+                                            @if($isSelected)
+                                                <span class="inline-flex bg-white text-zinc-900 rounded-full w-4 h-4 items-center justify-center text-[10px]">✓</span>
+                                            @endif
                                         </button>
                                     @endforeach
                                 </div>
@@ -749,12 +771,12 @@
 
                                 @php $selectedTags = $this->selectedTasteTagModels; @endphp
                             @if($selectedTags->isNotEmpty())
-                                <p class="mt-4 text-sm font-medium text-zinc-800">{{ __('Your chosen tags') }}</p>
+                                <p class="mt-4 text-sm font-semibold text-zinc-900">{{ __('Your chosen tags') }}</p>
                                 <div class="mt-2 flex flex-wrap gap-2">
                                     @foreach($selectedTags as $tag)
-                                        <span class="inline-flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium rounded-full bg-flux-primary/15 text-flux-primary border border-flux-primary/30">
+                                        <span class="inline-flex items-center gap-1.5 px-3 py-1.5 text-sm font-semibold rounded-full bg-zinc-900 text-white border border-zinc-900 shadow-sm">
                                             {{ $tag->name }}
-                                            <button type="button" wire:click="toggleTasteTag('{{ $tag->slug }}')" class="rounded-full p-0.5 hover:bg-flux-primary/20" aria-label="{{ __('Remove') }} {{ $tag->name }}">
+                                            <button type="button" wire:click="toggleTasteTag('{{ $tag->slug }}')" class="rounded-full p-0.5 hover:bg-white/20" aria-label="{{ __('Remove') }} {{ $tag->name }}">
                                                 <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
                                             </button>
                                         </span>
