@@ -11,6 +11,10 @@
         avatarModalParticipantId: null,
         avatarModalSeed: null,
         avatarModalSeedName: '',
+        autoOpenAvatar: @js($openAvatarModalOnLoad),
+        autoOpenParticipantId: @js($openAvatarParticipantId),
+        autoOpenParticipantSeed: @js($openAvatarParticipantSeed),
+        autoOpenParticipantName: @js($openAvatarParticipantName),
         avatarSeeds: ['oak','maple','ember','classic','storm','midnight','sunset','moss','pepper','sable','ginger','copper'],
         // Reveal modal + smoke canvas (smoke first, then image and text appear slowly)
         showRevealModal: false,
@@ -91,6 +95,14 @@
                     if (nameEl) nameEl.textContent = d.displayName;
                 }
             });
+
+            if (self.autoOpenAvatar && self.autoOpenParticipantId) {
+                self.avatarModalParticipantId = self.autoOpenParticipantId;
+                self.avatarModalSeed = self.autoOpenParticipantSeed || '';
+                self.avatarModalSeedName = self.autoOpenParticipantName || '';
+                self.avatarModalOpen = true;
+                self.autoOpenAvatar = false;
+            }
         },
         openAvatarModalFromEl(el) {
             var d = el.dataset;

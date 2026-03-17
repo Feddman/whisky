@@ -44,6 +44,15 @@ class SessionRoom extends Component
 
     public ?int $editing_drink_id = null;
 
+    /** Auto-open avatar editor right after join redirect. */
+    public bool $openAvatarModalOnLoad = false;
+
+    public ?int $openAvatarParticipantId = null;
+
+    public string $openAvatarParticipantSeed = '';
+
+    public string $openAvatarParticipantName = '';
+
     /** Tasting form (when round in progress) */
     public int $formStep = 1;
 
@@ -100,6 +109,16 @@ class SessionRoom extends Component
             $participant = SessionParticipant::find($participantId);
             if (! $participant || $participant->tasting_session_id !== $tastingSession->id || $participant->left_at !== null) {
                 abort(403, __('You are not in this session.'));
+            }
+        }
+
+        if (session()->pull('tasting_open_avatar_modal', false)) {
+            $participant = $this->getCurrentParticipantProperty();
+            if ($participant) {
+                $this->openAvatarModalOnLoad = true;
+                $this->openAvatarParticipantId = $participant->id;
+                $this->openAvatarParticipantSeed = $participant->avatar_seed ?? $participant->display_name;
+                $this->openAvatarParticipantName = $participant->display_name;
             }
         }
     }

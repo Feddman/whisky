@@ -43,6 +43,7 @@ class JoinSession extends Component
             ->first();
 
         if ($existing) {
+            session()->put('tasting_open_avatar_modal', true);
             $this->redirect(route('tasting.show', $session), navigate: true);
 
             return;
@@ -63,6 +64,7 @@ class JoinSession extends Component
 
         session()->put('tasting_participant_id', $participant->id);
         session()->put('tasting_display_name', $this->display_name);
+        session()->put('tasting_open_avatar_modal', true);
         $this->redirect(route('tasting.show', $session), navigate: true);
     }
 
