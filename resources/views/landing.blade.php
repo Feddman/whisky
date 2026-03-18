@@ -12,6 +12,7 @@
 
                 <div class="flex flex-col gap-3 w-full">
                     @auth
+                        <a href="{{ route('tasting.join') }}" class="inline-flex justify-center px-4 py-2 rounded-lg bg-white border border-neutral-200 dark:bg-neutral-800 dark:border-neutral-700 text-neutral-900 dark:text-neutral-100 font-semibold shadow">{{ __('landing.join_session') }}</a>
                         <a href="{{ route('tasting.create') }}" class="inline-flex justify-center px-4 py-2 rounded-lg bg-[#F8B803] dark:bg-[#F0ACB8] text-neutral-900 font-semibold shadow">{{ __('landing.create_session') }}</a>
                     @else
                         <a href="{{ route('tasting.join') }}" class="inline-flex justify-center px-4 py-2 rounded-lg bg-white border border-neutral-200 dark:bg-neutral-800 dark:border-neutral-700 text-neutral-900 dark:text-neutral-100 font-semibold shadow">{{ __('landing.join_session') }}</a>
