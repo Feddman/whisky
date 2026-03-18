@@ -68,6 +68,7 @@ return [
     'participants' => 'Spelers',
     'ratings' => 'Beoordelingen',
     'no_ratings' => 'Nog geen beoordelingen voor deze ronde.',
+    'hidden_until_reveal' => 'Verborgen tot de onthulling',
     'participant_breakdown_help' => 'Per speler: totale punten en welke tags voor die punten zorgden.',
     'no_scoring_tags' => 'Er zijn geen tags die voor deze ronde punten hebben opgeleverd.',
     'no_participant_scores' => 'Geen spelers met punten in deze ronde.',

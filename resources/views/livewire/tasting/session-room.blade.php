@@ -317,7 +317,7 @@
                 variant="ghost"
                 size="xs"
                 wire:click="openScoreBreakdown"
-                class="!bg-zinc-900 !text-white hover:!bg-zinc-800"
+                class="border border-zinc-300 !bg-white !text-zinc-900 hover:!bg-zinc-100"
             >
                 {{ __('session.view_tag_breakdown') }}
             </flux:button>
@@ -624,6 +624,9 @@
                                     <span>{{ __('session.syrupy') }}</span>
                                 </div>
                                 <input type="range" min="1" max="5" step="1" wire:model.live="color_viscosity" class="mt-2 w-full accent-zinc-900" />
+                                @error('color_viscosity')
+                                    <p class="mt-2 text-xs text-rose-600">{{ $message }}</p>
+                                @enderror
                             </div>
 
                             <div class="mt-6 flex justify-end">
@@ -674,6 +677,14 @@
                                     </div>
                                     <input type="range" min="1" max="5" step="1" wire:model.live="nose_complexity" class="mt-2 w-full accent-zinc-900" />
                                 </div>
+                            </div>
+                            <div class="mt-1 space-y-1">
+                                @error('nose_intensity')
+                                    <p class="text-xs text-rose-600">{{ $message }}</p>
+                                @enderror
+                                @error('nose_complexity')
+                                    <p class="text-xs text-rose-600">{{ $message }}</p>
+                                @enderror
                             </div>
                             @if(session('taste_tag_limit'))
                                 <div class="mt-3 text-sm text-rose-600">{{ session('taste_tag_limit') }}</div>
@@ -862,6 +873,17 @@
                                     </div>
                                     <input type="range" min="1" max="5" step="1" wire:model.live="taste_development" class="mt-2 w-full accent-zinc-900" />
                                 </div>
+                            </div>
+                            <div class="mt-1 space-y-1">
+                                @error('taste_mouthfeel')
+                                    <p class="text-xs text-rose-600">{{ $message }}</p>
+                                @enderror
+                                @error('taste_finish')
+                                    <p class="text-xs text-rose-600">{{ $message }}</p>
+                                @enderror
+                                @error('taste_development')
+                                    <p class="text-xs text-rose-600">{{ $message }}</p>
+                                @enderror
                             </div>
                             @if(session('taste_tag_limit'))
                                 <div class="mt-3 text-sm text-rose-600">{{ session('taste_tag_limit') }}</div>
@@ -1172,7 +1194,7 @@
                                     <div class="w-20 h-12 rounded-md bg-zinc-200 flex items-center justify-center text-2xl text-zinc-800">?</div>
                                     <div>
                                         <span class="font-medium text-zinc-900">?</span>
-                                        <div class="text-xs text-zinc-600">Hidden until reveal</div>
+                                        <div class="text-xs text-zinc-600">{{ __('session.hidden_until_reveal') }}</div>
                                     </div>
                                 </div>
                             @endif
