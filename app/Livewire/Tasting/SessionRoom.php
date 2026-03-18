@@ -90,6 +90,9 @@ class SessionRoom extends Component
 
     public ?array $currentRoundBreakdown = null;
 
+    /** When true, score modal only shows ratings/notes (no tag/points breakdown). */
+    public bool $ratingsOnly = false;
+
     /** Rating (1–10 scale) and free-text note. */
     public ?float $rating_score = null;
 
@@ -458,6 +461,7 @@ class SessionRoom extends Component
 
     public function openScoreBreakdown(): void
     {
+        $this->ratingsOnly = false;
         $round = $this->getCurrentRoundProperty();
         $service = app(TastingScoringService::class);
 
@@ -524,6 +528,7 @@ class SessionRoom extends Component
 
     public function openDrinkScoreBreakdown(int $drinkId): void
     {
+        $this->ratingsOnly = true;
         $service = app(TastingScoringService::class);
 
         $rounds = $this->tastingSession->rounds()

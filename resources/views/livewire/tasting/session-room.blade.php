@@ -1345,93 +1345,95 @@
                                     </div>
                                 </div>
                                 <div class="grid gap-6 md:grid-cols-2">
-                                    {{-- Tags column --}}
-                                    <div>
-                                        <h3 class="text-sm font-semibold text-zinc-800">
-                                            {{ __('session.tags') }}
-                                        </h3>
-                                        <div class="mt-3 space-y-2">
-                                            @php
-                                                $scoringTags = array_filter($details['tags'] ?? [], function ($t) {
-                                                    return ($t['team_points'] ?? 0) > 0;
-                                                });
-                                            @endphp
-                                            @forelse ($scoringTags as $tag)
-                                                <div class="rounded-lg border border-zinc-200 bg-zinc-50 px-3 py-2.5 text-sm">
-                                                    <div class="flex items-center justify-between gap-2">
-                                                        <div class="flex items-center gap-2">
-                                                            @if(!empty($tag['emoji']))
-                                                                <span class="text-lg">{{ $tag['emoji'] }}</span>
-                                                            @endif
-                                                            <span class="font-medium text-zinc-800">
-                                                                {{ $tag['name'] }}
+                                    @unless($ratingsOnly)
+                                        {{-- Tags column --}}
+                                        <div>
+                                            <h3 class="text-sm font-semibold text-zinc-800">
+                                                {{ __('session.tags') }}
+                                            </h3>
+                                            <div class="mt-3 space-y-2">
+                                                @php
+                                                    $scoringTags = array_filter($details['tags'] ?? [], function ($t) {
+                                                        return ($t['team_points'] ?? 0) > 0;
+                                                    });
+                                                @endphp
+                                                @forelse ($scoringTags as $tag)
+                                                    <div class="rounded-lg border border-zinc-200 bg-zinc-50 px-3 py-2.5 text-sm">
+                                                        <div class="flex items-center justify-between gap-2">
+                                                            <div class="flex items-center gap-2">
+                                                                @if(!empty($tag['emoji']))
+                                                                    <span class="text-lg">{{ $tag['emoji'] }}</span>
+                                                                @endif
+                                                                <span class="font-medium text-zinc-800">
+                                                                    {{ $tag['name'] }}
+                                                                </span>
+                                                            </div>
+                                                            <div class="text-right text-xs text-zinc-600">
+                                                                <div>{{ trans('session.tag_label_players', ['count' => $tag['count']]) }}</div>
+                                                                <div>{{ trans('session.tag_label_points', ['points' => $tag['team_points']]) }}</div>
+                                                            </div>
+                                                        </div>
+                                                        @if(!empty($tag['participants']))
+                                                            <div class="mt-2 flex flex-wrap gap-1">
+                                                                @foreach($tag['participants'] as $p)
+                                                                    @if($p['points'] > 0)
+                                                                        <span class="inline-flex items-center gap-1 rounded-full bg-white px-2 py-0.5 text-xs text-zinc-700 shadow-sm">
+                                                                            <span>{{ $p['name'] }}</span>
+                                                                            <span class="text-emerald-600 font-semibold">+{{ $p['points'] }}</span>
+                                                                        </span>
+                                                                    @endif
+                                                                @endforeach
+                                                            </div>
+                                                        @endif
+                                                    </div>
+                                                @empty
+                                                    <p class="text-xs text-zinc-800">{{ __('session.no_scoring_tags') }}</p>
+                                                @endforelse
+                                            </div>
+                                        </div>
+
+                                        {{-- Participants column --}}
+                                        <div>
+                                            <h3 class="text-sm font-semibold text-zinc-800">
+                                                {{ __('session.participants') }}
+                                            </h3>
+                                            <div class="mt-3 space-y-2">
+                                                @php
+                                                    $scoringParticipants = array_filter($details['participants'] ?? [], function ($p) {
+                                                        return ($p['total'] ?? 0) > 0;
+                                                    });
+                                                @endphp
+                                                @forelse ($scoringParticipants as $p)
+                                                    <div class="rounded-lg border border-zinc-200 bg-zinc-50 px-3 py-2.5 text-sm">
+                                                        <div class="flex items-center justify-between gap-2">
+                                                            <span class="font-medium text-zinc-800">{{ $p['name'] }}</span>
+                                                            <span class="text-xs font-semibold text-emerald-700">
+                                                                +{{ $p['total'] }} {{ __('session.points') }}
                                                             </span>
                                                         </div>
-                                                        <div class="text-right text-xs text-zinc-600">
-                                                            <div>{{ trans('session.tag_label_players', ['count' => $tag['count']]) }}</div>
-                                                            <div>{{ trans('session.tag_label_points', ['points' => $tag['team_points']]) }}</div>
-                                                        </div>
+                                                        @if(!empty($p['by_tag']))
+                                                            <div class="mt-2 flex flex-wrap gap-1">
+                                                                @foreach($p['by_tag'] as $slug => $points)
+                                                                    @if($points > 0)
+                                                                        @php
+                                                                            $tag = $details['tags'][$slug] ?? null;
+                                                                            $label = $tag['name'] ?? $slug;
+                                                                        @endphp
+                                                                        <span class="inline-flex items-center gap-1 rounded-full bg-white px-2 py-0.5 text-xs text-zinc-700 shadow-sm">
+                                                                            <span>{{ $label }}</span>
+                                                                            <span class="text-emerald-600 font-semibold">+{{ $points }}</span>
+                                                                        </span>
+                                                                    @endif
+                                                                @endforeach
+                                                            </div>
+                                                        @endif
                                                     </div>
-                                                    @if(!empty($tag['participants']))
-                                                        <div class="mt-2 flex flex-wrap gap-1">
-                                                            @foreach($tag['participants'] as $p)
-                                                                @if($p['points'] > 0)
-                                                                    <span class="inline-flex items-center gap-1 rounded-full bg-white px-2 py-0.5 text-xs text-zinc-700 shadow-sm">
-                                                                        <span>{{ $p['name'] }}</span>
-                                                                        <span class="text-emerald-600 font-semibold">+{{ $p['points'] }}</span>
-                                                                    </span>
-                                                                @endif
-                                                            @endforeach
-                                                        </div>
-                                                    @endif
-                                                </div>
-                                            @empty
-                                                <p class="text-xs text-zinc-800">{{ __('session.no_scoring_tags') }}</p>
-                                            @endforelse
+                                                @empty
+                                                    <p class="text-xs text-zinc-800">{{ __('session.no_participant_scores') }}</p>
+                                                @endforelse
+                                            </div>
                                         </div>
-                                    </div>
-
-                                    {{-- Participants column --}}
-                                    <div>
-                                        <h3 class="text-sm font-semibold text-zinc-800">
-                                            {{ __('session.participants') }}
-                                        </h3>
-                                        <div class="mt-3 space-y-2">
-                                            @php
-                                                $scoringParticipants = array_filter($details['participants'] ?? [], function ($p) {
-                                                    return ($p['total'] ?? 0) > 0;
-                                                });
-                                            @endphp
-                                            @forelse ($scoringParticipants as $p)
-                                                <div class="rounded-lg border border-zinc-200 bg-zinc-50 px-3 py-2.5 text-sm">
-                                                    <div class="flex items-center justify-between gap-2">
-                                                        <span class="font-medium text-zinc-800">{{ $p['name'] }}</span>
-                                                        <span class="text-xs font-semibold text-emerald-700">
-                                                            +{{ $p['total'] }} {{ __('session.points') }}
-                                                        </span>
-                                                    </div>
-                                                    @if(!empty($p['by_tag']))
-                                                        <div class="mt-2 flex flex-wrap gap-1">
-                                                            @foreach($p['by_tag'] as $slug => $points)
-                                                                @if($points > 0)
-                                                                    @php
-                                                                        $tag = $details['tags'][$slug] ?? null;
-                                                                        $label = $tag['name'] ?? $slug;
-                                                                    @endphp
-                                                                    <span class="inline-flex items-center gap-1 rounded-full bg-white px-2 py-0.5 text-xs text-zinc-700 shadow-sm">
-                                                                        <span>{{ $label }}</span>
-                                                                        <span class="text-emerald-600 font-semibold">+{{ $points }}</span>
-                                                                    </span>
-                                                                @endif
-                                                            @endforeach
-                                                        </div>
-                                                    @endif
-                                                </div>
-                                            @empty
-                                                <p class="text-xs text-zinc-800">{{ __('session.no_participant_scores') }}</p>
-                                            @endforelse
-                                        </div>
-                                    </div>
+                                    @endunless
                                 </div>
                                 <div class="mt-4 rounded-lg border border-zinc-200 bg-zinc-50 p-3">
                                     <h3 class="text-sm font-semibold text-zinc-900">{{ __('session.ratings') }}</h3>
