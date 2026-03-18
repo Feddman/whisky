@@ -1353,6 +1353,53 @@
                     </button>
                 </div>
                 <div class="max-h-[80vh] overflow-y-auto px-4 py-4 md:px-6 md:py-5">
+                    @if($ratingsOnly && !empty($currentRoundBreakdown['drink'] ?? []))
+                        @php
+                            $meta = $currentRoundBreakdown['drink'];
+                            $metaName = $meta['name'] ?? null;
+                            $metaYear = $meta['year'] ?? null;
+                            $metaLocation = $meta['location'] ?? null;
+                            $metaSubmittedBy = $meta['submitted_by'] ?? null;
+                            $metaDescription = $meta['description'] ?? null;
+                            $metaImageUrl = $meta['image_url'] ?? null;
+                        @endphp
+                        <div class="mb-5 rounded-xl border border-zinc-200 bg-white p-3">
+                            <div class="flex gap-3">
+                                @if($metaImageUrl)
+                                    <img
+                                        src="{{ $metaImageUrl }}"
+                                        alt="{{ $metaName ?? '' }}"
+                                        class="h-16 w-24 rounded-lg object-cover border border-zinc-200"
+                                    />
+                                @else
+                                    <div class="h-16 w-24 rounded-lg bg-zinc-100 border border-zinc-200 flex items-center justify-center text-zinc-500 text-sm">
+                                        —
+                                    </div>
+                                @endif
+                                <div class="min-w-0 flex-1">
+                                    <div class="flex flex-wrap items-baseline gap-x-2 gap-y-1">
+                                        <div class="font-semibold text-zinc-900 truncate">
+                                            {{ $metaName ?? '' }}
+                                        </div>
+                                        @if($metaYear)
+                                            <div class="text-sm text-zinc-700">({{ $metaYear }})</div>
+                                        @endif
+                                    </div>
+                                    @if($metaLocation)
+                                        <div class="text-sm text-zinc-800">{{ $metaLocation }}</div>
+                                    @endif
+                                    @if($metaSubmittedBy)
+                                        <div class="mt-1 text-xs text-zinc-700">
+                                            {{ __('session.submitted_by') }}: <span class="font-medium text-zinc-900">{{ $metaSubmittedBy }}</span>
+                                        </div>
+                                    @endif
+                                </div>
+                            </div>
+                            @if($metaDescription)
+                                <div class="mt-3 text-sm text-zinc-800 whitespace-pre-line">{{ $metaDescription }}</div>
+                            @endif
+                        </div>
+                    @endif
                     @if(isset($currentRoundBreakdown['rounds']))
                         @foreach($currentRoundBreakdown['rounds'] as $roundIndex => $roundData)
                             @php
@@ -1383,44 +1430,6 @@
                                         @endif
                                     </div>
                                 </div>
-                                @if($ratingsOnly)
-                                    <div class="mb-4 rounded-xl border border-zinc-200 bg-white p-3">
-                                        <div class="flex gap-3">
-                                            @if($drinkImageUrl)
-                                                <img
-                                                    src="{{ $drinkImageUrl }}"
-                                                    alt="{{ $drinkName ?? '' }}"
-                                                    class="h-16 w-24 rounded-lg object-cover border border-zinc-200"
-                                                />
-                                            @else
-                                                <div class="h-16 w-24 rounded-lg bg-zinc-100 border border-zinc-200 flex items-center justify-center text-zinc-500 text-sm">
-                                                    —
-                                                </div>
-                                            @endif
-                                            <div class="min-w-0 flex-1">
-                                                <div class="flex flex-wrap items-baseline gap-x-2 gap-y-1">
-                                                    <div class="font-semibold text-zinc-900 truncate">
-                                                        {{ $drinkName ?? '' }}
-                                                    </div>
-                                                    @if($drinkYear)
-                                                        <div class="text-sm text-zinc-700">({{ $drinkYear }})</div>
-                                                    @endif
-                                                </div>
-                                                @if($drinkLocation)
-                                                    <div class="text-sm text-zinc-800">{{ $drinkLocation }}</div>
-                                                @endif
-                                                @if($drinkSubmittedBy)
-                                                    <div class="mt-1 text-xs text-zinc-700">
-                                                        {{ __('session.submitted_by') }}: <span class="font-medium text-zinc-900">{{ $drinkSubmittedBy }}</span>
-                                                    </div>
-                                                @endif
-                                            </div>
-                                        </div>
-                                        @if($drinkDescription)
-                                            <div class="mt-3 text-sm text-zinc-800 whitespace-pre-line">{{ $drinkDescription }}</div>
-                                        @endif
-                                    </div>
-                                @endif
                                 <div class="grid gap-6 md:grid-cols-2">
                                     @unless($ratingsOnly)
                                         {{-- Tags column --}}

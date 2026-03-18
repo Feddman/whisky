@@ -561,6 +561,10 @@ class SessionRoom extends Component
         $this->ratingsOnly = true;
         $service = app(TastingScoringService::class);
 
+        // Base drink metadata so we can show a card even when there are
+        // no scored rounds/ratings yet (host clicking unrevealed drink).
+        $drink = $this->tastingSession->drinks()->find($drinkId);
+
         // Determine the absolute round numbers within the session so the
         // modal shows "Ronde 3" when this drink was tasted in round 3.
         $allRoundIds = $this->tastingSession->rounds()
@@ -577,6 +581,14 @@ class SessionRoom extends Component
             ->get();
 
         $this->currentRoundBreakdown = [
+            'drink' => $drink ? [
+                'name' => $drink->name,
+                'year' => $drink->year,
+                'location' => $drink->location,
+                'submitted_by' => $drink->submitted_by,
+                'description' => $drink->description,
+                'image_url' => $drink->imageUrl(),
+            ] : null,
             'rounds' => $rounds
                 ->map(function ($r) use ($service, $allRoundIds) {
                     $position = array_search($r->id, $allRoundIds, true);
