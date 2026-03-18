@@ -436,6 +436,11 @@
                         @if ($revealDrink && ($revealDrink->year || $revealDrink->location))
                             <p class="reveal-drink-meta mt-1 text-lg text-zinc-800">{{ $revealDrink->year }} {{ $revealDrink->location }}</p>
                         @endif
+                        @if ($revealDrink && $revealDrink->submitted_by)
+                            <p class="reveal-drink-meta mt-1 text-sm text-zinc-700">
+                                {{ __('session.submitted_by') }}: <span class="font-medium text-zinc-900">{{ $revealDrink->submitted_by }}</span>
+                            </p>
+                        @endif
                         @if ($revealDrink && $revealDrink->description)
                             <p class="reveal-drink-meta mt-3 max-w-xl mx-auto text-zinc-800">{{ $revealDrink->description }}</p>
                         @endif
@@ -1154,6 +1159,7 @@
                         <flux:input wire:model="drink_name" :label="__('session.name')" class="!text-zinc-900" required />
                         <flux:input wire:model="drink_year" :label="__('session.year')" class="!text-zinc-900" />
                         <flux:input wire:model="drink_location" :label="__('session.location')" class="!text-zinc-900" />
+                        <flux:input wire:model="drink_submitted_by" :label="__('session.submitted_by')" class="!text-zinc-900" />
                         <flux:textarea wire:model="drink_description" :label="__('session.description')" class="!text-zinc-900" rows="3" />
                         <flux:input wire:model="drink_image" type="file" accept="image/*" :label="__('session.image')" />
                         <div class="flex gap-2">
@@ -1330,6 +1336,7 @@
                             @php
                                 $details = $roundData['details'] ?? ['tags' => [], 'participants' => []];
                                 $drinkName = $roundData['drink']['name'] ?? null;
+                                $drinkSubmittedBy = $roundData['drink']['submitted_by'] ?? null;
                                 $avgRatingRound = $roundData['avg_rating'] ?? null;
                             @endphp
                             <div class="mb-6 last:mb-0">
@@ -1344,6 +1351,9 @@
                                         {{ __('session.this_round') }}: {{ $roundData['team_total'] ?? 0 }} {{ __('session.points') }}
                                         @if(!is_null($avgRatingRound))
                                             · {{ __('session.avg_rating') }}: {{ number_format($avgRatingRound, 1) }} / 10
+                                        @endif
+                                        @if($drinkSubmittedBy)
+                                            · {{ __('session.submitted_by') }}: {{ $drinkSubmittedBy }}
                                         @endif
                                     </div>
                                 </div>
@@ -1442,19 +1452,37 @@
                                     <h3 class="text-sm font-semibold text-zinc-900">{{ __('session.ratings') }}</h3>
                                     @php $ratings = $roundData['ratings'] ?? []; @endphp
                                     @if(!empty($ratings))
-                                        <div class="mt-2 space-y-2">
-                                            @foreach($ratings as $r)
-                                                <details class="rounded-md border border-zinc-200 bg-white px-3 py-2">
-                                                    <summary class="cursor-pointer list-none flex items-center justify-between text-sm text-zinc-900">
-                                                        <span class="font-medium">{{ $r['participant'] }}</span>
-                                                        <span class="font-semibold">{{ number_format((float) $r['score'], 1) }} / 10</span>
-                                                    </summary>
-                                                    @if(!empty($r['note']))
-                                                        <p class="mt-2 text-sm text-zinc-800">{{ $r['note'] }}</p>
-                                                    @endif
-                                                </details>
-                                            @endforeach
-                                        </div>
+                                        @if($ratingsOnly)
+                                            {{-- When opened from a drink click: show ratings + notes expanded --}}
+                                            <div class="mt-2 space-y-2">
+                                                @foreach($ratings as $r)
+                                                    <div class="rounded-md border border-zinc-200 bg-white px-3 py-2">
+                                                        <div class="flex items-center justify-between text-sm text-zinc-900">
+                                                            <span class="font-medium">{{ $r['participant'] }}</span>
+                                                            <span class="font-semibold">{{ number_format((float) $r['score'], 1) }} / 10</span>
+                                                        </div>
+                                                        @if(!empty($r['note']))
+                                                            <p class="mt-2 text-sm text-zinc-800">{{ $r['note'] }}</p>
+                                                        @endif
+                                                    </div>
+                                                @endforeach
+                                            </div>
+                                        @else
+                                            {{-- In the full breakdown: keep notes collapsible to save space --}}
+                                            <div class="mt-2 space-y-2">
+                                                @foreach($ratings as $r)
+                                                    <details class="rounded-md border border-zinc-200 bg-white px-3 py-2">
+                                                        <summary class="cursor-pointer list-none flex items-center justify-between text-sm text-zinc-900">
+                                                            <span class="font-medium">{{ $r['participant'] }}</span>
+                                                            <span class="font-semibold">{{ number_format((float) $r['score'], 1) }} / 10</span>
+                                                        </summary>
+                                                        @if(!empty($r['note']))
+                                                            <p class="mt-2 text-sm text-zinc-800">{{ $r['note'] }}</p>
+                                                        @endif
+                                                    </details>
+                                                @endforeach
+                                            </div>
+                                        @endif
                                     @else
                                         <p class="mt-2 text-xs text-zinc-800">{{ __('session.no_ratings') }}</p>
                                     @endif

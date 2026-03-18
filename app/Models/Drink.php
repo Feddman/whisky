@@ -15,6 +15,7 @@ class Drink extends Model
         'name',
         'year',
         'location',
+        'submitted_by',
         'description',
         'image',
         'order',

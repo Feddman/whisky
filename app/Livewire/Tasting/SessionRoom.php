@@ -38,6 +38,8 @@ class SessionRoom extends Component
 
     public string $drink_location = '';
 
+    public string $drink_submitted_by = '';
+
     public string $drink_description = '';
 
     public $drink_image = null;
@@ -133,6 +135,7 @@ class SessionRoom extends Component
             'drink_name' => ['required', 'string', 'max:255'],
             'drink_year' => ['nullable', 'string', 'max:16'],
             'drink_location' => ['nullable', 'string', 'max:255'],
+            'drink_submitted_by' => ['nullable', 'string', 'max:255'],
             'drink_description' => ['nullable', 'string'],
             'drink_image' => ['nullable', 'image', 'max:2048'],
         ]);
@@ -142,6 +145,7 @@ class SessionRoom extends Component
             'name' => $this->drink_name,
             'year' => $this->drink_year ?: null,
             'location' => $this->drink_location ?: null,
+            'submitted_by' => $this->drink_submitted_by ?: null,
             'description' => $this->drink_description ?: null,
             'order' => $order,
         ]);
@@ -150,7 +154,7 @@ class SessionRoom extends Component
             $drink->storeImage($this->drink_image);
         }
 
-        $this->reset(['drink_name', 'drink_year', 'drink_location', 'drink_description', 'drink_image', 'showAddDrink']);
+        $this->reset(['drink_name', 'drink_year', 'drink_location', 'drink_submitted_by', 'drink_description', 'drink_image', 'showAddDrink']);
         $this->tastingSession->refresh();
     }
 
@@ -162,6 +166,7 @@ class SessionRoom extends Component
         $this->drink_name = $drink->name;
         $this->drink_year = $drink->year ?? '';
         $this->drink_location = $drink->location ?? '';
+        $this->drink_submitted_by = $drink->submitted_by ?? '';
         $this->drink_description = $drink->description ?? '';
     }
 
@@ -173,6 +178,7 @@ class SessionRoom extends Component
             'drink_name' => ['required', 'string', 'max:255'],
             'drink_year' => ['nullable', 'string', 'max:16'],
             'drink_location' => ['nullable', 'string', 'max:255'],
+            'drink_submitted_by' => ['nullable', 'string', 'max:255'],
             'drink_description' => ['nullable', 'string'],
             'drink_image' => ['nullable', 'image', 'max:2048'],
         ]);
@@ -181,6 +187,7 @@ class SessionRoom extends Component
             'name' => $this->drink_name,
             'year' => $this->drink_year ?: null,
             'location' => $this->drink_location ?: null,
+            'submitted_by' => $this->drink_submitted_by ?: null,
             'description' => $this->drink_description ?: null,
         ]);
 
@@ -188,7 +195,7 @@ class SessionRoom extends Component
             $drink->storeImage($this->drink_image);
         }
 
-        $this->reset(['editing_drink_id', 'drink_name', 'drink_year', 'drink_location', 'drink_description', 'drink_image']);
+        $this->reset(['editing_drink_id', 'drink_name', 'drink_year', 'drink_location', 'drink_submitted_by', 'drink_description', 'drink_image']);
         $this->tastingSession->refresh();
     }
 
@@ -201,7 +208,7 @@ class SessionRoom extends Component
 
     public function cancelEdit(): void
     {
-        $this->reset(['editing_drink_id', 'drink_name', 'drink_year', 'drink_location', 'drink_description', 'drink_image']);
+        $this->reset(['editing_drink_id', 'drink_name', 'drink_year', 'drink_location', 'drink_submitted_by', 'drink_description', 'drink_image']);
     }
 
     public function startRound(int $drinkId): void
@@ -495,6 +502,7 @@ class SessionRoom extends Component
                             'round_number' => $index + 1,
                             'drink' => [
                                 'name' => optional($r->drink)->name,
+                                'submitted_by' => optional($r->drink)->submitted_by,
                             ],
                             'team_total' => $r->team_total ?? 0,
                             'avg_rating' => $r->submissions()->whereNotNull('rating_score')->avg('rating_score'),
@@ -556,6 +564,7 @@ class SessionRoom extends Component
                         'round_number' => $position === false ? null : $position + 1,
                         'drink' => [
                             'name' => optional($r->drink)->name,
+                            'submitted_by' => optional($r->drink)->submitted_by,
                         ],
                         'team_total' => $r->team_total ?? 0,
                         'avg_rating' => $r->submissions()->whereNotNull('rating_score')->avg('rating_score'),

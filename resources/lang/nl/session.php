@@ -83,6 +83,7 @@ return [
     'name' => 'Naam',
     'year' => 'Jaar',
     'location' => 'Locatie',
+    'submitted_by' => 'Ingediend door',
     'description' => 'Beschrijving',
     'image' => 'Afbeelding',
     'save' => 'Opslaan',
