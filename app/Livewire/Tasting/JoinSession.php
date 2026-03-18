@@ -43,6 +43,24 @@ class JoinSession extends Component
             ->first();
 
         if ($existing) {
+            // Rejoin: restore participant if they had left, and (for guests) restore session participant id.
+            if ($existing->left_at !== null) {
+                $existing->update([
+                    'left_at' => null,
+                    'joined_at' => now(),
+                    'display_name' => $this->display_name,
+                ]);
+
+                broadcast(new PlayerJoined(
+                    $session->id,
+                    $existing->id,
+                    $existing->display_name,
+                    $user_id === null
+                ))->toOthers();
+            }
+
+            session()->put('tasting_participant_id', $existing->id);
+            session()->put('tasting_display_name', $this->display_name);
             session()->put('tasting_open_avatar_modal', true);
             $this->redirect(route('tasting.show', $session), navigate: true);
 

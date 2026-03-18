@@ -22,6 +22,11 @@
                         <div class="shrink-0 flex flex-col items-end gap-2">
                             <a href="{{ route('tasting.show', $session) }}" class="inline-flex items-center px-3 py-2 rounded-md bg-[#F8B803]  text-neutral-900 font-semibold">Open</a>
                             <a href="{{ route('tasting.leave', $session) }}" class="text-xs text-zinc-400 hover:underline">Leave</a>
+                            <form method="POST" action="{{ route('tasting.destroy', $session) }}" onsubmit="return confirm('Delete this session? This cannot be undone.');">
+                                @csrf
+                                @method('DELETE')
+                                <button type="submit" class="text-xs text-rose-700 hover:underline">Delete</button>
+                            </form>
                         </div>
                     </div>
                 </div>

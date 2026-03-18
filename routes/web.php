@@ -14,6 +14,7 @@ Route::view('dashboard', 'dashboard')
 // Tasting: create requires auth; join and session room work without login (Kahoot-style)
 Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('tasting/create', \App\Livewire\Tasting\CreateSession::class)->name('tasting.create');
+    Route::delete('tasting/{tastingSession}', \App\Http\Controllers\Tasting\DeleteSessionController::class)->name('tasting.destroy');
 
     // Admin: manage taste tag categories and tags
     Route::get('admin/taste-tags', \App\Livewire\Admin\TasteTagsManager::class)->name('admin.taste-tags');
