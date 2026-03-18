@@ -522,6 +522,49 @@ class SessionRoom extends Component
         $this->showScoreBreakdown = false;
     }
 
+    public function openDrinkScoreBreakdown(int $drinkId): void
+    {
+        $service = app(TastingScoringService::class);
+
+        $rounds = $this->tastingSession->rounds()
+            ->where('drink_id', $drinkId)
+            ->whereNotNull('round_score')
+            ->orderBy('id')
+            ->get();
+
+        $this->currentRoundBreakdown = [
+            'rounds' => $rounds
+                ->map(function ($r) use ($service) {
+                    return [
+                        'drink' => [
+                            'name' => optional($r->drink)->name,
+                        ],
+                        'team_total' => $r->team_total ?? 0,
+                        'avg_rating' => $r->submissions()->whereNotNull('rating_score')->avg('rating_score'),
+                        'ratings' => $r->submissions()
+                            ->with('sessionParticipant')
+                            ->whereNotNull('rating_score')
+                            ->get()
+                            ->map(function ($s) {
+                                return [
+                                    'participant' => optional($s->sessionParticipant)->display_name ?? '#'.$s->session_participant_id,
+                                    'score' => $s->rating_score,
+                                    'note' => $s->rating_note,
+                                ];
+                            })
+                            ->sortByDesc('score')
+                            ->values()
+                            ->all(),
+                        'details' => $service->computeRoundDetails($r),
+                    ];
+                })
+                ->values()
+                ->all(),
+        ];
+
+        $this->showScoreBreakdown = true;
+    }
+
     /**
      * Allow the current participant (including the host, if joined) to reopen
      * and edit their own tasting form for the current round.
