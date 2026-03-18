@@ -1145,20 +1145,37 @@
 
             <ul class="mt-4 space-y-2">
                 @forelse ($tastingSession->drinks as $drink)
+                    @php
+                        $isHost = auth()->check() && auth()->user()->can('update', $tastingSession);
+                        $isRevealed = $tastingSession->rounds()
+                            ->where('drink_id', $drink->id)
+                            ->whereNotNull('revealed_at')
+                            ->exists();
+                    @endphp
                     <li class="flex items-center justify-between rounded-lg border border-zinc-200 p-3">
                         <div class="flex items-center gap-3">
-                            @if ($drink->image)
-                                <img src="{{ $drink->imageUrl() }}" alt="{{ $drink->name }}" class="w-20 h-12 rounded-md object-cover" />
+                            @if ($isHost || $isRevealed)
+                                @if ($drink->image)
+                                    <img src="{{ $drink->imageUrl() }}" alt="{{ $drink->name }}" class="w-20 h-12 rounded-md object-cover" />
+                                @endif
+                                <div>
+                                    <span class="font-medium text-zinc-900">{{ $drink->name }}</span>
+                                    @if ($drink->year)
+                                        <span class="text-zinc-800">({{ $drink->year }})</span>
+                                    @endif
+                                    @if ($drink->location)
+                                        <div class="text-xs text-zinc-800">{{ $drink->location }}</div>
+                                    @endif
+                                </div>
+                            @else
+                                <div class="flex items-center gap-3">
+                                    <div class="w-20 h-12 rounded-md bg-zinc-200 flex items-center justify-center text-2xl text-zinc-800">?</div>
+                                    <div>
+                                        <span class="font-medium text-zinc-900">?</span>
+                                        <div class="text-xs text-zinc-600">Hidden until reveal</div>
+                                    </div>
+                                </div>
                             @endif
-                            <div>
-                                <span class="font-medium">{{ $drink->name }}</span>
-                                @if ($drink->year)
-                                    <span class="text-zinc-800">({{ $drink->year }})</span>
-                                @endif
-                                @if ($drink->location)
-                                    <div class="text-xs text-zinc-800">{{ $drink->location }}</div>
-                                @endif
-                            </div>
                         </div>
                         @can('update', $tastingSession)
                             <div class="flex gap-2">
