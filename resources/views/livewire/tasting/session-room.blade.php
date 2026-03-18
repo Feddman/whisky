@@ -1173,29 +1173,28 @@
                             ->where('drink_id', $drink->id)
                             ->whereNotNull('revealed_at')
                             ->exists();
+                        $canOpenScore = $isHost || $isRevealed;
                     @endphp
-                    <li class="flex items-center justify-between rounded-lg border border-zinc-200 p-3">
+                    <li
+                        class="flex items-center justify-between rounded-lg border border-zinc-200 p-3 {{ $canOpenScore ? 'cursor-pointer hover:bg-zinc-50' : '' }}"
+                        @if($canOpenScore)
+                            wire:click="openDrinkScoreBreakdown({{ $drink->id }})"
+                        @endif
+                    >
                         <div class="flex items-center gap-3">
-                            @if ($isHost || $isRevealed)
-                                <button
-                                    type="button"
-                                    wire:click="openDrinkScoreBreakdown({{ $drink->id }})"
-                                    class="flex items-center gap-3 text-left hover:opacity-90"
-                                    title="{{ __('session.score_button') }}"
-                                >
-                                    @if ($drink->image)
-                                        <img src="{{ $drink->imageUrl() }}" alt="{{ $drink->name }}" class="w-20 h-12 rounded-md object-cover" />
+                            @if ($canOpenScore)
+                                @if ($drink->image)
+                                    <img src="{{ $drink->imageUrl() }}" alt="{{ $drink->name }}" class="w-20 h-12 rounded-md object-cover" />
+                                @endif
+                                <div>
+                                    <span class="font-medium text-zinc-900">{{ $drink->name }}</span>
+                                    @if ($drink->year)
+                                        <span class="text-zinc-800">({{ $drink->year }})</span>
                                     @endif
-                                    <div>
-                                        <span class="font-medium text-zinc-900">{{ $drink->name }}</span>
-                                        @if ($drink->year)
-                                            <span class="text-zinc-800">({{ $drink->year }})</span>
-                                        @endif
-                                        @if ($drink->location)
-                                            <div class="text-xs text-zinc-800">{{ $drink->location }}</div>
-                                        @endif
-                                    </div>
-                                </button>
+                                    @if ($drink->location)
+                                        <div class="text-xs text-zinc-800">{{ $drink->location }}</div>
+                                    @endif
+                                </div>
                             @else
                                 <div class="flex items-center gap-3">
                                     <div class="w-20 h-12 rounded-md bg-zinc-200 flex items-center justify-center text-2xl text-zinc-800">?</div>
