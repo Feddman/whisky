@@ -36,11 +36,24 @@ class JoinSession extends Component
             return;
         }
 
-        $user_id = Auth::id();
-        $existing = $session->participants()
-            ->when($user_id, fn ($q) => $q->where('user_id', $user_id))
-            ->when(! $user_id, fn ($q) => $q->where('display_name', $this->display_name))
-            ->first();
+        $user = Auth::user();
+        $user_id = $user?->id;
+
+        // When logged in: always bind by user_id (never by display name).
+        // When guest: only reattach if we have a matching session_participant_id in the session.
+        if ($user_id) {
+            $existing = $session->participants()
+                ->where('user_id', $user_id)
+                ->first();
+        } else {
+            $existing = null;
+            $participantId = session('tasting_participant_id');
+            if ($participantId) {
+                $existing = $session->participants()
+                    ->where('id', $participantId)
+                    ->first();
+            }
+        }
 
         if ($existing) {
             // Rejoin: restore participant if they had left, and (for guests) restore session participant id.

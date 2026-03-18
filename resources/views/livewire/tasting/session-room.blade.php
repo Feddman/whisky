@@ -317,9 +317,9 @@
                 variant="ghost"
                 size="xs"
                 wire:click="openScoreBreakdown"
-                class="border border-zinc-300 !bg-white !text-zinc-900 hover:!bg-zinc-100"
+                class="border border-zinc-300 !bg-white hover:!bg-zinc-100"
             >
-                {{ __('session.view_tag_breakdown') }}
+                <span style="color:#111827;">{{ __('session.view_tag_breakdown') }}</span>
             </flux:button>
         </div>
         <div class="mt-2 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
@@ -1106,9 +1106,9 @@
                             variant="ghost"
                             size="sm"
                             wire:click="openScoreBreakdown"
-                            class="border border-zinc-300 !bg-white !text-zinc-900 hover:!bg-zinc-100"
+                            class="border border-zinc-300 !bg-white hover:!bg-zinc-100"
                         >
-                            {{ __('session.view_tag_breakdown') }}
+                            <span style="color:#111827;">{{ __('session.view_tag_breakdown') }}</span>
                         </flux:button>
                     </div>
                 </div>
