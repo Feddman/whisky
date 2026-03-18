@@ -100,9 +100,13 @@ class SessionRoom extends Component
 
     public string $rating_note = '';
 
+    /** Host-adjustable max tags per round for this session (mirrors model). */
+    public int $max_taste_tags;
+
     public function mount(TastingSession $tastingSession): void
     {
         $this->tastingSession = $tastingSession;
+        $this->max_taste_tags = $tastingSession->max_taste_tags ?? 5;
 
         if (auth()->check()) {
             $this->authorize('view', $tastingSession);
@@ -126,6 +130,22 @@ class SessionRoom extends Component
                 $this->openAvatarParticipantName = $participant->display_name;
             }
         }
+    }
+
+    public function updateMaxTasteTags(): void
+    {
+        $this->authorize('update', $this->tastingSession);
+
+        $data = $this->validate([
+            'max_taste_tags' => ['required', 'integer', 'min:1', 'max:10'],
+        ]);
+
+        $this->tastingSession->update([
+            'max_taste_tags' => $data['max_taste_tags'],
+        ]);
+
+        // Refresh session so all dependent computed props use latest value
+        $this->tastingSession->refresh();
     }
 
     public function addDrink(): void
@@ -560,11 +580,16 @@ class SessionRoom extends Component
             'rounds' => $rounds
                 ->map(function ($r) use ($service, $allRoundIds) {
                     $position = array_search($r->id, $allRoundIds, true);
+                    $drink = $r->drink;
                     return [
                         'round_number' => $position === false ? null : $position + 1,
                         'drink' => [
-                            'name' => optional($r->drink)->name,
-                            'submitted_by' => optional($r->drink)->submitted_by,
+                            'name' => $drink?->name,
+                            'year' => $drink?->year,
+                            'location' => $drink?->location,
+                            'submitted_by' => $drink?->submitted_by,
+                            'description' => $drink?->description,
+                            'image_url' => $drink?->imageUrl(),
                         ],
                         'team_total' => $r->team_total ?? 0,
                         'avg_rating' => $r->submissions()->whereNotNull('rating_score')->avg('rating_score'),

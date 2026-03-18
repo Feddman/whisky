@@ -1138,8 +1138,30 @@
     {{-- Setup drinks (visible for everyone, actions host-only) --}}
     @if ($tastingSession->status === 'setup')
         <section>
-            <div class="flex items-center justify-between gap-4">
-                <flux:heading size="lg">{{ __('session.drinks') }}</flux:heading>
+            <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                <div>
+                    <flux:heading size="lg">{{ __('session.drinks') }}</flux:heading>
+                    @can('update', $tastingSession)
+                        <div class="mt-2 flex items-center gap-2 text-sm text-zinc-800">
+                            <span>{{ __('session.max_tags_per_round') }}:</span>
+                            <form wire:submit.prevent="updateMaxTasteTags" class="flex items-center gap-2">
+                                <input
+                                    type="number"
+                                    min="1"
+                                    max="10"
+                                    wire:model.lazy="max_taste_tags"
+                                    class="w-16 rounded-md border border-zinc-300 bg-white px-2 py-1 text-sm text-zinc-900 focus:border-zinc-500 focus:outline-none"
+                                />
+                                <button
+                                    type="submit"
+                                    class="rounded-md bg-zinc-900 px-2.5 py-1 text-xs font-medium text-white hover:bg-zinc-800"
+                                >
+                                    {{ __('session.save') }}
+                                </button>
+                            </form>
+                        </div>
+                    @endcan
+                </div>
                 <div class="flex items-center gap-2">
                     <flux:button type="button" variant="ghost" size="sm" wire:click="openScoreBreakdown">{{ __('session.score_button') }}</flux:button>
                     @can('update', $tastingSession)
@@ -1337,6 +1359,10 @@
                                 $details = $roundData['details'] ?? ['tags' => [], 'participants' => []];
                                 $drinkName = $roundData['drink']['name'] ?? null;
                                 $drinkSubmittedBy = $roundData['drink']['submitted_by'] ?? null;
+                                $drinkYear = $roundData['drink']['year'] ?? null;
+                                $drinkLocation = $roundData['drink']['location'] ?? null;
+                                $drinkDescription = $roundData['drink']['description'] ?? null;
+                                $drinkImageUrl = $roundData['drink']['image_url'] ?? null;
                                 $avgRatingRound = $roundData['avg_rating'] ?? null;
                             @endphp
                             <div class="mb-6 last:mb-0">
@@ -1357,6 +1383,44 @@
                                         @endif
                                     </div>
                                 </div>
+                                @if($ratingsOnly)
+                                    <div class="mb-4 rounded-xl border border-zinc-200 bg-white p-3">
+                                        <div class="flex gap-3">
+                                            @if($drinkImageUrl)
+                                                <img
+                                                    src="{{ $drinkImageUrl }}"
+                                                    alt="{{ $drinkName ?? '' }}"
+                                                    class="h-16 w-24 rounded-lg object-cover border border-zinc-200"
+                                                />
+                                            @else
+                                                <div class="h-16 w-24 rounded-lg bg-zinc-100 border border-zinc-200 flex items-center justify-center text-zinc-500 text-sm">
+                                                    —
+                                                </div>
+                                            @endif
+                                            <div class="min-w-0 flex-1">
+                                                <div class="flex flex-wrap items-baseline gap-x-2 gap-y-1">
+                                                    <div class="font-semibold text-zinc-900 truncate">
+                                                        {{ $drinkName ?? '' }}
+                                                    </div>
+                                                    @if($drinkYear)
+                                                        <div class="text-sm text-zinc-700">({{ $drinkYear }})</div>
+                                                    @endif
+                                                </div>
+                                                @if($drinkLocation)
+                                                    <div class="text-sm text-zinc-800">{{ $drinkLocation }}</div>
+                                                @endif
+                                                @if($drinkSubmittedBy)
+                                                    <div class="mt-1 text-xs text-zinc-700">
+                                                        {{ __('session.submitted_by') }}: <span class="font-medium text-zinc-900">{{ $drinkSubmittedBy }}</span>
+                                                    </div>
+                                                @endif
+                                            </div>
+                                        </div>
+                                        @if($drinkDescription)
+                                            <div class="mt-3 text-sm text-zinc-800 whitespace-pre-line">{{ $drinkDescription }}</div>
+                                        @endif
+                                    </div>
+                                @endif
                                 <div class="grid gap-6 md:grid-cols-2">
                                     @unless($ratingsOnly)
                                         {{-- Tags column --}}
