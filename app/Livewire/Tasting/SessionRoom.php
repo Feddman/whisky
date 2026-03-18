@@ -489,8 +489,10 @@ class SessionRoom extends Component
                     ->whereNotNull('round_score')
                     ->orderBy('id')
                     ->get()
-                    ->map(function ($r) use ($service) {
+                    ->values()
+                    ->map(function ($r, int $index) use ($service) {
                         return [
+                            'round_number' => $index + 1,
                             'drink' => [
                                 'name' => optional($r->drink)->name,
                             ],
@@ -531,6 +533,15 @@ class SessionRoom extends Component
         $this->ratingsOnly = true;
         $service = app(TastingScoringService::class);
 
+        // Determine the absolute round numbers within the session so the
+        // modal shows "Ronde 3" when this drink was tasted in round 3.
+        $allRoundIds = $this->tastingSession->rounds()
+            ->whereNotNull('round_score')
+            ->orderBy('id')
+            ->pluck('id')
+            ->values()
+            ->all();
+
         $rounds = $this->tastingSession->rounds()
             ->where('drink_id', $drinkId)
             ->whereNotNull('round_score')
@@ -539,8 +550,10 @@ class SessionRoom extends Component
 
         $this->currentRoundBreakdown = [
             'rounds' => $rounds
-                ->map(function ($r) use ($service) {
+                ->map(function ($r) use ($service, $allRoundIds) {
+                    $position = array_search($r->id, $allRoundIds, true);
                     return [
+                        'round_number' => $position === false ? null : $position + 1,
                         'drink' => [
                             'name' => optional($r->drink)->name,
                         ],

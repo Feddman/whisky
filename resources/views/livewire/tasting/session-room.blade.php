@@ -1335,7 +1335,10 @@
                             <div class="mb-6 last:mb-0">
                                 <div class="mb-3 flex flex-wrap items-baseline justify-between gap-2 border-b border-zinc-200 pb-2">
                                     <div class="text-sm font-semibold text-zinc-800">
-                                        Ronde {{ $roundIndex + 1 }}@if($drinkName) · {{ $drinkName }}@endif
+                                        @php
+                                            $roundNumber = $roundData['round_number'] ?? ($roundIndex + 1);
+                                        @endphp
+                                        Ronde {{ $roundNumber }}@if($drinkName) · {{ $drinkName }}@endif
                                     </div>
                                     <div class="text-xs text-zinc-800">
                                         {{ __('session.this_round') }}: {{ $roundData['team_total'] ?? 0 }} {{ __('session.points') }}
